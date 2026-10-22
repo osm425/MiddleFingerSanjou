@@ -1,0 +1,12 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanjou\\middlefingersanjou.h",
+        "ProvidedModule": "",
+        "Includes": [
+            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanjou\\resource.h"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}
