@@ -39,7 +39,9 @@ void drawSkillIcon(App& app, const SkillSlot& slot, double now) {
 	const double remaining = app.cooldownEndsAt[slot.skillIndex] - now;
 	if (remaining <= 0.0) return;
 
-	const float progress = static_cast<float>(std::clamp(1.0 - remaining / SKILL_COOLDOWN_SECONDS, 0.0, 1.0));
+	const double cooldownDuration = app.cooldownDurations[slot.skillIndex] > 0.0
+		? app.cooldownDurations[slot.skillIndex] : skillCooldownSeconds(app.swordStage, slot.skillIndex);
+	const float progress = static_cast<float>(std::clamp(1.0 - remaining / cooldownDuration, 0.0, 1.0));
 	const float fullTurn = 6.2831853071795864769f;
 	const float startAngle = -1.5707963267948966192f + progress * fullTurn;
 	const float remainingSweep = (1.0f - progress) * fullTurn;

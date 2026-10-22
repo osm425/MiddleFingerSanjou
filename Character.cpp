@@ -50,6 +50,18 @@ static glm::mat4 backSwordTransform(const ObjModel& sword, const glm::mat4& root
 	return rootTransform * localTransform;
 }
 
+static glm::mat4 handSwordTransform(const ObjModel& sword, const glm::mat4& rootTransform,
+	const CharacterPose& pose) {
+	// Keep the grip at the animated hand; point the blade along the forearm's current extension.
+	glm::vec3 bladeDirection = pose.leftHandTip - pose.leftElbow;
+	if (glm::length(bladeDirection) < 1e-6f) bladeDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+	glm::mat4 rotation = alignPositiveY(glm::normalize(bladeDirection));
+	rotation = rotation * glm::rotate(glm::mat4(1.0f), 1.57079632679f, glm::vec3(0.0f, 1.0f, 0.0f));
+	const glm::vec3 rotatedGripAnchor = glm::vec3(rotation * glm::vec4(sword.swordGripAnchor(), 0.0f));
+	const glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), pose.leftHandTip - rotatedGripAnchor) * rotation;
+	return rootTransform * localTransform;
+}
+
 static glm::vec3 transformPoint(const glm::mat4& transform, const glm::vec3& point) {
 	return glm::vec3(transform * glm::vec4(point, 1.0f));
 }
@@ -61,6 +73,7 @@ static glm::vec3 rotateAroundLocalX(const glm::vec3& vector, float angle) {
 }
 
 CharacterPose animatedCharacterPose(const App& app) {
+	if (skillAnimationActive(app)) return animatedSkillPose(app);
 	const CharacterPose& base = app.characterPose;
 	CharacterPose animated = base;
 	const float blend = std::clamp(app.runAnimationBlend, 0.0f, 1.0f);
@@ -100,7 +113,8 @@ void drawMainScreen(App& app, double now) {
 		const CharacterRig& rig = app.characterRig;
 		app.ground.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition);
 		const glm::mat4 rootTransform = glm::translate(glm::mat4(1.0f), pose.rootPosition)
-			* glm::rotate(glm::mat4(1.0f), pose.rootYaw, glm::vec3(0.0f, 1.0f, 0.0f));
+			* glm::rotate(glm::mat4(1.0f), pose.rootYaw, glm::vec3(0.0f, 1.0f, 0.0f))
+			* glm::rotate(glm::mat4(1.0f), pose.rootPitch, glm::vec3(1.0f, 0.0f, 0.0f));
 		app.model.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, rootTransform);
 		if (app.coat.loaded()) {
 			const glm::vec3 coatOffset = app.coat.scaledSourceCenter() - app.model.scaledSourceCenter() + vec3(0.0f, -0.4f, -0.4f);
@@ -127,10 +141,18 @@ void drawMainScreen(App& app, double now) {
 		app.hands.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, leftLowerArm);
 		if (app.swordStage >= 0 && app.swordStage < static_cast<int>(app.swordModels.size())) {
 			const ObjModel& sword = app.swordModels[app.swordStage];
+			const bool handHeldSkill = skillAnimationActive(app)
+				&& (app.skillAnimation.skillIndex == 1 || app.skillAnimation.skillIndex == 5);
 			if (sword.loaded()) {
 				sword.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition,
-					backSwordTransform(sword, rootTransform));
+					handHeldSkill ? handSwordTransform(sword, rootTransform, pose)
+						: backSwordTransform(sword, rootTransform));
 			}
+		}
+		if (app.skillAnimation.skillIndex == 5 && app.skillAnimation.thrownSwordVisible
+			&& app.thrownSealedSword.loaded()) {
+			app.thrownSealedSword.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition,
+				thrownSkillSwordTransform(app));
 		}
 
 		const glm::vec3 leftHip = transformPoint(rootTransform, pose.leftHip);

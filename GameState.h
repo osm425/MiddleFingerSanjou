@@ -1,11 +1,13 @@
 ﻿#pragma once
 
 #include "RenderResources.h"
+#include <atomic>
 
 // Joint coordinates are local to the character root and can be updated by an animation later.
 struct CharacterPose {
 	glm::vec3 rootPosition{ 0.35f, 0.0f, 0.0f };
 	float rootYaw = 0.0f;
+	float rootPitch = 0.0f;
 	glm::vec3 leftShoulder{ 0.52f, 0.76f, 0.00f };
 	glm::vec3 leftElbow{ 0.819f, 0.019f, 0.00f };
 	glm::vec3 leftHandTip{ 1.209f, -0.930f, 0.013f };
@@ -28,6 +30,27 @@ struct CharacterRig {
 	glm::vec2 rightLowerLegWidth{ 0.2145f, 0.208f };
 };
 
+struct SkillAnimationState {
+	int skillIndex = -1;
+	double elapsed = 0.0;
+	double duration = 0.0;
+	unsigned voiceCueMask = 0;
+	bool swordThrown = false;
+	bool thrownSwordVisible = false;
+	double thrownSwordElapsed = 0.0;
+	glm::vec3 thrownSwordStart{ 0.0f };
+	glm::vec3 thrownSwordVelocity{ 0.0f };
+	glm::vec3 thrownSwordDirection{ 0.0f, 1.0f, 0.0f };
+};
+
+struct VoicePlayback {
+	HWAVEOUT device = nullptr;
+	WAVEHDR header{};
+	std::vector<char> audioData;
+	std::atomic<bool> completed{ true };
+	double startedAt = 0.0;
+};
+
 enum class Screen { Start, Main, ConfirmReturn };
 
 struct App {
@@ -40,6 +63,8 @@ struct App {
 	std::array<Texture, 4> skillFrames{};
 	std::array<Texture, 4> skillBackgrounds{};
 	std::array<double, 6> cooldownEndsAt{};
+	std::array<double, 6> cooldownDurations{};
+	fs::path assetRoot;
 	GroundPlane ground;
 	ObjModel model;
 	ObjModel limbSegments;
@@ -48,7 +73,10 @@ struct App {
 	ObjModel rightFoot;
 	ObjModel coat;
 	std::array<ObjModel, 4> swordModels;
+	ObjModel thrownSealedSword;
 	int swordStage = 0;
+	SkillAnimationState skillAnimation;
+	std::array<VoicePlayback, 3> voicePlayback;
 	CharacterPose characterPose;
 	glm::vec3 initialCharacterPosition = characterPose.rootPosition;
 	float initialCharacterYaw = characterPose.rootYaw;
@@ -105,12 +133,21 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void cursorPositionCallback(GLFWwindow* window, double x, double y);
 void updateCharacterMovement(App& app, float deltaTime);
+void updateSkillAnimation(App& app, float deltaTime, double now);
+void playSkillVoice(App& app, const wchar_t* fileName, double now);
+void updateVoicePlayback(App& app);
+void stopVoicePlayback(App& app);
+double skillCooldownSeconds(int swordStage, int skillIndex);
+double skillAnimationSeconds(int skillIndex);
+bool skillAnimationActive(const App& app);
 void framebufferCallback(GLFWwindow* window, int width, int height);
 void drawText(Canvas& canvas, Assets& assets, const std::wstring& value, int size, Tint color, float x, float y, bool bold = false);
 void drawCentered(Canvas& canvas, Assets& assets, const std::wstring& value, int size, Tint color, float centerX, float y, bool bold = false);
 void drawStartScreen(App& app);
 void drawSkillIcon(App& app, const SkillSlot& slot, double now);
 CharacterPose animatedCharacterPose(const App& app);
+CharacterPose animatedSkillPose(const App& app);
+glm::mat4 thrownSkillSwordTransform(const App& app);
 void drawMainScreen(App& app, double now);
 void drawReturnConfirmation(App& app);
 fs::path findAssetRoot();

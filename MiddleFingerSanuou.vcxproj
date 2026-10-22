@@ -173,6 +173,7 @@ glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="GameInput.cpp" />
     <ClCompile Include="GameUI.cpp" />
     <ClCompile Include="Character.cpp" />
+    <ClCompile Include="SkillAnimations.cpp" />
     <ClCompile Include="AssetPaths.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -56,6 +56,9 @@
     <ClCompile Include="Character.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="SkillAnimations.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
     <ClCompile Include="AssetPaths.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>

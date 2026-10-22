@@ -25,6 +25,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	App app;
 	app.window = window;
 	app.assets = &assets;
+	app.assetRoot = assetRoot;
 	app.canvas.initialize();
 	app.startBackground = assets.loadImage(L"start_screen.png");
 	app.ground.initialize();
@@ -56,6 +57,8 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 		const Texture swordTexture = assets.loadImage(swordTextureFiles[i]);
 		app.swordModels[i].load(modelRoot / swordFiles[i], swordTexture, glm::vec3(0.82f), 2.8f);
 	}
+	const Texture sealedSwordTexture = assets.loadImage(L"models/Sealedsword.png");
+	app.thrownSealedSword.load(modelRoot / L"sealedsword_nal.obj", sealedSwordTexture, glm::vec3(0.82f), 2.8f);
 	const std::array<std::array<const wchar_t*, 6>, 4> skillFiles = {{
 		{{
 			L"wrath1/111px-Stomping_1_Matthias.png",
@@ -150,6 +153,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	double previousFrameTime = glfwGetTime();
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
+		updateVoicePlayback(app);
 		const double now = glfwGetTime();
 		const float deltaTime = std::clamp(static_cast<float>(now - previousFrameTime), 0.0f, 0.05f);
 		previousFrameTime = now;
@@ -177,6 +181,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 		glfwSwapBuffers(window);
 	}
 
+	stopVoicePlayback(app);
 	PlaySoundW(nullptr, nullptr, 0);
 	app.ground.release();
 	app.model.release();
@@ -186,6 +191,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	app.rightFoot.release();
 	app.coat.release();
 	for (ObjModel& sword : app.swordModels) sword.release();
+	app.thrownSealedSword.release();
 	assets.release();
 	app.canvas.release();
 	Gdiplus::GdiplusShutdown(gdiplusToken);
