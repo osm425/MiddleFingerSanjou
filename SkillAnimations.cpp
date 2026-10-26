@@ -57,13 +57,13 @@ const SkillActionPose& rightLegHorizontal() {
 
 const std::array<SkillActionPose, 7>& swordComboPoses() {
 	static const std::array<SkillActionPose, 7> poses = {{
-		action(0.35f, 1.15f, -0.20f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.10f, -0.04f), // draw from back
-		action(2.18f, 0.08f, -0.12f, -0.22f, 0.38f, 0.0f, 0.15f, 0.0f, 0.0f, 0.0f, 0.0f), // raise overhead and brace
-		action(-0.62f, -0.90f, 0.25f, 0.18f, 0.32f, 0.30f, 0.10f, 0.0f, 0.08f, -0.18f, 0.34f), // downward cut and lean
-		action(-0.28f, -0.52f, 1.05f, 0.12f, 0.22f, 0.25f, 0.10f, 0.0f, 0.0f, 0.82f, 0.30f), // fold arm inward
-		action(0.18f, -0.62f, 0.10f, -0.20f, 0.28f, 0.0f, 0.12f, 0.0f, 0.0f, -1.20f, -0.05f), // sweep left and straighten
-		action(-0.22f, 1.05f, 0.18f, 0.16f, 0.24f, 0.22f, 0.0f, 0.0f, 0.05f, -0.22f, 0.32f), // lean and draw back
-		action(2.12f, -0.22f, -0.16f, -0.18f, 0.30f, 0.0f, 0.12f, 0.0f, 0.0f, 0.22f, -0.08f) // rising cut
+		action(0.35f, 1.35f, 0.20f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.10f, -0.04f), // pull the hand back to the sword grip
+		action(2.18f, 0.60f, 0.00f, -0.22f, 0.38f, 0.0f, 0.15f, 0.0f, 0.0f, -1.00f, 0.0f), // extend the sword arm upward with a slight -X sweep
+		action(-0.72f, -1.05f, 0.00f, -0.18f, 0.32f, -0.30f, 0.10f, 0.0f, 0.08f, 0.00f, 0.34f), // swing the sword down in front
+		action(-0.28f, -0.52f, 1.05f, -0.12f, 0.22f, -0.25f, 0.10f, 0.0f, 0.0f, -1.90f, 0.30f), // bend the arm inward with the sword extending left
+		action(1.05f, -0.25f, 0.15f, -0.20f, 0.28f, 0.0f, 0.12f, 0.0f, 0.0f, -0.94f, -0.05f), // swing horizontally to the right
+		action(-0.22f, 1.25f, 0.00f, -0.16f, 0.24f, -0.22f, 0.0f, 0.0f, 0.05f, -0.22f, 0.32f), // extend the sword arm backward
+		action(2.12f, 0.85f, 0.00f, -0.18f, 0.30f, 0.0f, 0.12f, 0.0f, 0.0f, 0.22f, -0.08f) // swing forward and upward
 	}};
 	return poses;
 }
