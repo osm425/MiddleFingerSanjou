@@ -270,7 +270,12 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int) {
 		return;
 	}
 	if (app->screen == Screen::ConfirmExit) {
-		if (inside(designX, designY, CONFIRM_EXIT_BUTTON)) glfwSetWindowShouldClose(window, GLFW_TRUE);
+		if (inside(designX, designY, MUSIC_TOGGLE_BUTTON)) app->musicEnabled = !app->musicEnabled;
+		else if (inside(designX, designY, VOICE_TOGGLE_BUTTON)) {
+			app->voiceEnabled = !app->voiceEnabled;
+			if (!app->voiceEnabled) stopVoicePlayback(*app);
+		}
+		else if (inside(designX, designY, CONFIRM_EXIT_BUTTON)) glfwSetWindowShouldClose(window, GLFW_TRUE);
 		else if (inside(designX, designY, CANCEL_EXIT_BUTTON)) app->screen = Screen::Start;
 		return;
 	}

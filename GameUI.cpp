@@ -38,7 +38,7 @@ static void drawSkillKeyLabel(Canvas& canvas, Assets& assets, const SkillSlot& s
 	constexpr float labelHeight = 28.0f;
 	const float x = slot.bounds.x - 25.0f;
 	const float y = slot.bounds.y + (slot.bounds.h - labelHeight) * 0.5f;
-	canvas.roundedRect(x, y, labelWidth, labelHeight, 6.0f, rgba(13, 14, 19, 230));
+	canvas.roundedRect(x, y, labelWidth, labelHeight, 6.0f, rgba(92, 53, 38, 240));
 	const Texture& number = assets.text(std::to_wstring(slot.skillIndex + 1), 16, rgba(255, 247, 230), true);
 	canvas.image(number, x + (labelWidth - number.width) * 0.5f, y + (labelHeight - number.height) * 0.5f,
 		static_cast<float>(number.width), static_cast<float>(number.height));
@@ -64,7 +64,7 @@ static void drawSkillHoverName(App& app, const SkillSlot& slot) {
 	const float iconCenterX = slot.bounds.x + slot.bounds.w * 0.5f;
 	const float boxX = std::clamp(iconCenterX - boxWidth * 0.5f, 12.0f, 1268.0f - boxWidth);
 	const float boxY = std::max(12.0f, slot.bounds.y - boxHeight - 8.0f);
-	app.canvas.roundedRect(boxX, boxY, boxWidth, boxHeight, 8.0f, rgba(15, 16, 21, 238));
+	app.canvas.roundedRect(boxX, boxY, boxWidth, boxHeight, 8.0f, rgba(92, 53, 38, 240));
 	app.canvas.image(*text, boxX + (boxWidth - text->width) * 0.5f,
 		boxY + (boxHeight - text->height) * 0.5f, static_cast<float>(text->width), static_cast<float>(text->height));
 }
@@ -130,8 +130,16 @@ void drawExitConfirmation(App& app) {
 	Assets& assets = *app.assets;
 	canvas.rect(0, 0, 1280, 720, rgba(0, 0, 0, 170));
 	drawCentered(canvas, assets, L"게임을 종료하시겠습니까?", 30, rgba(245, 239, 228), 640, 300, true);
+	canvas.rect(MUSIC_TOGGLE_BUTTON.x, MUSIC_TOGGLE_BUTTON.y, MUSIC_TOGGLE_BUTTON.w, MUSIC_TOGGLE_BUTTON.h,
+		app.musicEnabled ? rgba(48, 83, 64) : rgba(62, 62, 68));
+	canvas.rect(VOICE_TOGGLE_BUTTON.x, VOICE_TOGGLE_BUTTON.y, VOICE_TOGGLE_BUTTON.w, VOICE_TOGGLE_BUTTON.h,
+		app.voiceEnabled ? rgba(48, 83, 64) : rgba(62, 62, 68));
 	canvas.rect(CONFIRM_EXIT_BUTTON.x, CONFIRM_EXIT_BUTTON.y, CONFIRM_EXIT_BUTTON.w, CONFIRM_EXIT_BUTTON.h, rgba(106, 34, 42));
 	canvas.rect(CANCEL_EXIT_BUTTON.x, CANCEL_EXIT_BUTTON.y, CANCEL_EXIT_BUTTON.w, CANCEL_EXIT_BUTTON.h, rgba(52, 53, 61));
+	drawCentered(canvas, assets, app.musicEnabled ? L"음악: 켜짐" : L"음악: 꺼짐", 20,
+		rgba(255, 247, 230), MUSIC_TOGGLE_BUTTON.x + MUSIC_TOGGLE_BUTTON.w * 0.5f, MUSIC_TOGGLE_BUTTON.y + 15, true);
+	drawCentered(canvas, assets, app.voiceEnabled ? L"보이스: 켜짐" : L"보이스: 꺼짐", 20,
+		rgba(255, 247, 230), VOICE_TOGGLE_BUTTON.x + VOICE_TOGGLE_BUTTON.w * 0.5f, VOICE_TOGGLE_BUTTON.y + 15, true);
 	drawCentered(canvas, assets, L"확인", 22, rgba(255, 247, 230), CONFIRM_EXIT_BUTTON.x + CONFIRM_EXIT_BUTTON.w * 0.5f, CONFIRM_EXIT_BUTTON.y + 17, true);
 	drawCentered(canvas, assets, L"취소", 22, rgba(240, 240, 240), CANCEL_EXIT_BUTTON.x + CANCEL_EXIT_BUTTON.w * 0.5f, CANCEL_EXIT_BUTTON.y + 17, true);
 }
