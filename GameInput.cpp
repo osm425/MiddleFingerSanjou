@@ -219,7 +219,10 @@ void keyCallback(GLFWwindow* window, int key, int, int action, int mods) {
 			return;
 		}
 	}
-	if (app->screen == Screen::Start && (key == GLFW_KEY_ENTER || key == GLFW_KEY_KP_ENTER || key == GLFW_KEY_SPACE)) {
+	if (app->screen == Screen::Start && key == GLFW_KEY_ESCAPE) {
+		app->screen = Screen::ConfirmExit;
+	}
+	else if (app->screen == Screen::Start && (key == GLFW_KEY_ENTER || key == GLFW_KEY_KP_ENTER || key == GLFW_KEY_SPACE)) {
 		app->screen = Screen::Main;
 	}
 	else if (app->screen == Screen::Main && key == GLFW_KEY_ESCAPE) {
@@ -239,6 +242,14 @@ void keyCallback(GLFWwindow* window, int key, int, int action, int mods) {
 			cancelReturnConfirmation(*app, glfwGetTime());
 		}
 	}
+	else if (app->screen == Screen::ConfirmExit) {
+		if (key == GLFW_KEY_ENTER || key == GLFW_KEY_KP_ENTER || key == GLFW_KEY_Y) {
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
+		}
+		else if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_N) {
+			app->screen = Screen::Start;
+		}
+	}
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int) {
@@ -256,6 +267,11 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int) {
 	cursorToDesign(*app, x, y, designX, designY);
 	if (app->screen == Screen::Start) {
 		if (inside(designX, designY, START_BUTTON)) app->screen = Screen::Main;
+		return;
+	}
+	if (app->screen == Screen::ConfirmExit) {
+		if (inside(designX, designY, CONFIRM_EXIT_BUTTON)) glfwSetWindowShouldClose(window, GLFW_TRUE);
+		else if (inside(designX, designY, CANCEL_EXIT_BUTTON)) app->screen = Screen::Start;
 		return;
 	}
 	if (app->screen == Screen::ConfirmReturn) {
@@ -283,13 +299,24 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int) {
 
 void cursorPositionCallback(GLFWwindow* window, double x, double y) {
 	App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
-	if (!app || !app->cameraDragging) return;
+	if (!app) return;
+	float designX = 0.0f, designY = 0.0f;
+	cursorToDesign(*app, x, y, designX, designY);
+	app->hoveredSkillIndex = -1;
+	if (app->screen == Screen::Main) {
+		for (const SkillSlot& slot : SKILL_SLOTS) {
+			if (skillAvailableForStage(app->swordStage, slot.skillIndex)
+				&& inside(designX, designY, slot.bounds)) {
+				app->hoveredSkillIndex = slot.skillIndex;
+				break;
+			}
+		}
+	}
+	if (!app->cameraDragging) return;
 	if (app->screen != Screen::Main) {
 		app->cameraDragging = false;
 		return;
 	}
-	float designX = 0.0f, designY = 0.0f;
-	cursorToDesign(*app, x, y, designX, designY);
 	const float deltaX = designX - app->lastCameraDragX;
 	const float deltaY = designY - app->lastCameraDragY;
 	app->cameraYaw -= deltaX * 0.008f;

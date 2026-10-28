@@ -22,6 +22,53 @@ void drawStartScreen(App& app) {
 	drawCentered(canvas, assets, L"게임 시작", 29, rgba(250, 236, 215), START_BUTTON.x + START_BUTTON.w * 0.5f, START_BUTTON.y + 17, true);
 }
 
+static const wchar_t* skillDisplayName(int swordStage, int skillIndex) {
+	static constexpr const wchar_t* names[4][6] = {
+		{ L"짓밟기", L"고작 이거에 부서지지 말라고!", L"원한 스탬핑", L"걷어차기", L"규칙 위반", L"포장 하나 뜯는다!" },
+		{ L"짓밟기", L"후끈해지지 않나?!", L"원한 스탬핑", L"걷어차기", L"규칙 위반", L"두번째 포장지까지 벗기게 되는군." },
+		{ L"짓밟기!", L"슬슬 녹아 죽을 차례다", L"즉결 처형 스탬핑!", L"걷어차기!", L"규칙 위반!", L"레바테인 - 여기까지 꺼내는 것도 오랜만이군!" },
+		{ L"배떼지를 갈라주지", L"칼빵 [레바테인]", L"...즉결처형[레바테인]", L"", L"규칙 위반!!", L"애절단 - 가로" }
+	};
+	if (swordStage < 0 || swordStage >= 4 || skillIndex < 0 || skillIndex >= 6) return L"";
+	return names[swordStage][skillIndex];
+}
+
+static void drawSkillKeyLabel(Canvas& canvas, Assets& assets, const SkillSlot& slot) {
+	constexpr float labelWidth = 22.0f;
+	constexpr float labelHeight = 28.0f;
+	const float x = slot.bounds.x - 25.0f;
+	const float y = slot.bounds.y + (slot.bounds.h - labelHeight) * 0.5f;
+	canvas.roundedRect(x, y, labelWidth, labelHeight, 6.0f, rgba(13, 14, 19, 230));
+	const Texture& number = assets.text(std::to_wstring(slot.skillIndex + 1), 16, rgba(255, 247, 230), true);
+	canvas.image(number, x + (labelWidth - number.width) * 0.5f, y + (labelHeight - number.height) * 0.5f,
+		static_cast<float>(number.width), static_cast<float>(number.height));
+}
+
+static void drawSkillHoverName(App& app, const SkillSlot& slot) {
+	if (app.hoveredSkillIndex != slot.skillIndex) return;
+	const wchar_t* name = skillDisplayName(app.swordStage, slot.skillIndex);
+	if (!name || !*name) return;
+	Assets& assets = *app.assets;
+	const Tint textColor = rgba(255, 247, 230);
+	int fontSize = 20;
+	const Texture* text = nullptr;
+	while (fontSize >= 14) {
+		const Texture& candidate = assets.text(name, fontSize, textColor, true);
+		text = &candidate;
+		if (candidate.width <= 1200) break;
+		--fontSize;
+	}
+	if (!text) return;
+	const float boxWidth = static_cast<float>(text->width) + 24.0f;
+	const float boxHeight = std::max(34.0f, static_cast<float>(text->height) + 10.0f);
+	const float iconCenterX = slot.bounds.x + slot.bounds.w * 0.5f;
+	const float boxX = std::clamp(iconCenterX - boxWidth * 0.5f, 12.0f, 1268.0f - boxWidth);
+	const float boxY = std::max(12.0f, slot.bounds.y - boxHeight - 8.0f);
+	app.canvas.roundedRect(boxX, boxY, boxWidth, boxHeight, 8.0f, rgba(15, 16, 21, 238));
+	app.canvas.image(*text, boxX + (boxWidth - text->width) * 0.5f,
+		boxY + (boxHeight - text->height) * 0.5f, static_cast<float>(text->width), static_cast<float>(text->height));
+}
+
 void drawSkillIcon(App& app, const SkillSlot& slot, double now) {
 	if (!skillAvailableForStage(app.swordStage, slot.skillIndex)) return;
 	Canvas& canvas = app.canvas;
@@ -35,6 +82,8 @@ void drawSkillIcon(App& app, const SkillSlot& slot, double now) {
 	canvas.image(background, bounds.x, bounds.y, bounds.w, bounds.h);
 	canvas.imageMasked(icon, background, iconX, iconY, iconWidth, iconHeight, bounds);
 	canvas.image(app.skillFrames[slot.frameIndex], bounds.x, bounds.y, bounds.w, bounds.h);
+	drawSkillKeyLabel(canvas, *app.assets, slot);
+	drawSkillHoverName(app, slot);
 
 	const double remaining = app.cooldownEndsAt[slot.skillIndex] - now;
 	if (remaining <= 0.0) return;
@@ -74,5 +123,16 @@ void drawReturnConfirmation(App& app) {
 		rgba(255, 247, 230), VOICE_TOGGLE_BUTTON.x + VOICE_TOGGLE_BUTTON.w * 0.5f, VOICE_TOGGLE_BUTTON.y + 15, true);
 	drawCentered(canvas, assets, L"확인", 22, rgba(255, 247, 230), CONFIRM_RETURN_BUTTON.x + CONFIRM_RETURN_BUTTON.w * 0.5f, CONFIRM_RETURN_BUTTON.y + 17, true);
 	drawCentered(canvas, assets, L"취소", 22, rgba(240, 240, 240), CANCEL_RETURN_BUTTON.x + CANCEL_RETURN_BUTTON.w * 0.5f, CANCEL_RETURN_BUTTON.y + 17, true);
+}
+
+void drawExitConfirmation(App& app) {
+	Canvas& canvas = app.canvas;
+	Assets& assets = *app.assets;
+	canvas.rect(0, 0, 1280, 720, rgba(0, 0, 0, 170));
+	drawCentered(canvas, assets, L"게임을 종료하시겠습니까?", 30, rgba(245, 239, 228), 640, 300, true);
+	canvas.rect(CONFIRM_EXIT_BUTTON.x, CONFIRM_EXIT_BUTTON.y, CONFIRM_EXIT_BUTTON.w, CONFIRM_EXIT_BUTTON.h, rgba(106, 34, 42));
+	canvas.rect(CANCEL_EXIT_BUTTON.x, CANCEL_EXIT_BUTTON.y, CANCEL_EXIT_BUTTON.w, CANCEL_EXIT_BUTTON.h, rgba(52, 53, 61));
+	drawCentered(canvas, assets, L"확인", 22, rgba(255, 247, 230), CONFIRM_EXIT_BUTTON.x + CONFIRM_EXIT_BUTTON.w * 0.5f, CONFIRM_EXIT_BUTTON.y + 17, true);
+	drawCentered(canvas, assets, L"취소", 22, rgba(240, 240, 240), CANCEL_EXIT_BUTTON.x + CANCEL_EXIT_BUTTON.w * 0.5f, CANCEL_EXIT_BUTTON.y + 17, true);
 }
 

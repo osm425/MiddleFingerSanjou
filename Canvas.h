@@ -52,6 +52,23 @@ public:
 		quad(x, y, w, h, color, 0, false);
 	}
 
+	void roundedRect(float x, float y, float w, float h, float radius, Tint color) {
+		if (w <= 0.0f || h <= 0.0f) return;
+		const float r = std::clamp(radius, 0.0f, std::min(w, h) * 0.5f);
+		if (r <= 0.0f) {
+			rect(x, y, w, h, color);
+			return;
+		}
+		rect(x + r, y, w - 2.0f * r, h, color);
+		rect(x, y + r, r, h - 2.0f * r, color);
+		rect(x + w - r, y + r, r, h - 2.0f * r, color);
+		const float quarterTurn = 1.5707963267948966192f;
+		sector(x + r, y + r, r, 3.1415926535897932385f, quarterTurn, color);
+		sector(x + w - r, y + r, r, -quarterTurn, quarterTurn, color);
+		sector(x + w - r, y + h - r, r, 0.0f, quarterTurn, color);
+		sector(x + r, y + h - r, r, quarterTurn, quarterTurn, color);
+	}
+
 	void sector(float centerX, float centerY, float radius, float startAngle, float sweepAngle, Tint color) {
 		if (radius <= 0.0f || std::abs(sweepAngle) < 0.0001f) return;
 		const int segments = std::max(1, static_cast<int>(std::ceil(std::abs(sweepAngle) * radius * scale_ / 3.0f)));

@@ -51,7 +51,7 @@ struct VoicePlayback {
 	double startedAt = 0.0;
 };
 
-enum class Screen { Start, Main, ConfirmReturn };
+enum class Screen { Start, Main, ConfirmReturn, ConfirmExit };
 
 struct App {
 	GLFWwindow* window = nullptr;
@@ -90,6 +90,7 @@ struct App {
 	float runAnimationBlend = 0.0f;
 	double pauseStartedAt = 0.0;
 	bool startHovered = false;
+	int hoveredSkillIndex = -1;
 	bool musicEnabled = true;
 	bool voiceEnabled = true;
 	int framebufferWidth = 1280;
@@ -101,6 +102,8 @@ static const Rect MUSIC_TOGGLE_BUTTON{ 400, 356, 220, 52 };
 static const Rect VOICE_TOGGLE_BUTTON{ 660, 356, 220, 52 };
 static const Rect CONFIRM_RETURN_BUTTON{ 470, 438, 150, 58 };
 static const Rect CANCEL_RETURN_BUTTON{ 660, 438, 150, 58 };
+static const Rect CONFIRM_EXIT_BUTTON{ 470, 438, 150, 58 };
+static const Rect CANCEL_EXIT_BUTTON{ 660, 438, 150, 58 };
 
 struct SkillSlot {
 	int skillIndex;
@@ -109,11 +112,11 @@ struct SkillSlot {
 };
 
 static constexpr std::array<SkillSlot, 6> SKILL_SLOTS = {{
-	{ 3, 0, { 963, 492, 91, 91 } },  // 4: Punting / Wrath
-	{ 4, 2, { 1062, 492, 91, 91 } }, // 5: Rule Violation / Envy1
-	{ 5, 3, { 1161, 492, 91, 91 } }, // 6: Unbox / Envy3
-	{ 0, 0, { 963, 591, 91, 91 } }, // 1: Stomping / Wrath
-	{ 1, 1, { 1062, 591, 91, 91 } },// 2: Don't Let This Break Ya / Pride
+	{ 3, 0, { 927, 440, 91, 91 } },  // 4: Punting / Wrath
+	{ 4, 2, { 1044, 440, 91, 91 } }, // 5: Rule Violation / Envy1
+	{ 5, 3, { 1161, 440, 91, 91 } }, // 6: Unbox / Envy3
+	{ 0, 0, { 927, 591, 91, 91 } }, // 1: Stomping / Wrath
+	{ 1, 1, { 1044, 591, 91, 91 } },// 2: Don't Let This Break Ya / Pride
 	{ 2, 3, { 1161, 591, 91, 91 } } // 3: Stamp of Vengeance / Envy3
 }};
 
@@ -150,4 +153,5 @@ CharacterPose animatedSkillPose(const App& app);
 glm::mat4 thrownSkillSwordTransform(const App& app);
 void drawMainScreen(App& app, double now);
 void drawReturnConfirmation(App& app);
+void drawExitConfirmation(App& app);
 fs::path findAssetRoot();

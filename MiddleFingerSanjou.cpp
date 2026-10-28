@@ -173,9 +173,13 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 		else if (app.screen == Screen::Main) {
 			drawMainScreen(app, now);
 		}
-		else {
+		else if (app.screen == Screen::ConfirmReturn) {
 			drawMainScreen(app, app.pauseStartedAt);
 			drawReturnConfirmation(app);
+		}
+		else {
+			drawStartScreen(app);
+			drawExitConfirmation(app);
 		}
 		app.canvas.end();
 		glfwSwapBuffers(window);
