@@ -114,7 +114,9 @@ void drawMainScreen(App& app, double now) {
 		app.ground.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition);
 		const glm::mat4 rootTransform = glm::translate(glm::mat4(1.0f), pose.rootPosition)
 			* glm::rotate(glm::mat4(1.0f), pose.rootYaw, glm::vec3(0.0f, 1.0f, 0.0f))
-			* glm::rotate(glm::mat4(1.0f), pose.rootPitch, glm::vec3(1.0f, 0.0f, 0.0f));
+			* glm::rotate(glm::mat4(1.0f), pose.torsoRotationZ, glm::vec3(0.0f, 0.0f, 1.0f))
+			* glm::rotate(glm::mat4(1.0f), pose.torsoRotationY, glm::vec3(0.0f, 1.0f, 0.0f))
+			* glm::rotate(glm::mat4(1.0f), pose.torsoRotationX, glm::vec3(1.0f, 0.0f, 0.0f));
 		app.model.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, rootTransform);
 		if (app.coat.loaded()) {
 			const glm::vec3 coatOffset = app.coat.scaledSourceCenter() - app.model.scaledSourceCenter() + vec3(0.0f, -0.4f, -0.4f);
@@ -129,7 +131,8 @@ void drawMainScreen(App& app, double now) {
 			app.coat.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, coatTransform);
 		}
 		// The pose stores joint positions in character-local coordinates; transform them by the root.
-		const glm::vec3 characterForward(std::sin(pose.rootYaw), 0.0f, std::cos(pose.rootYaw));
+		const glm::vec3 characterForward = glm::normalize(glm::vec3(
+			rootTransform * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)));
 		const glm::vec3 leftShoulder = transformPoint(rootTransform, pose.leftShoulder);
 		const glm::vec3 leftElbow = transformPoint(rootTransform, pose.leftElbow);
 		const glm::vec3 leftHandTip = transformPoint(rootTransform, pose.leftHandTip);

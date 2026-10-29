@@ -7,7 +7,9 @@ struct SkillActionPose {
 	float armReach = 0.0f;
 	float elbowBend = 0.0f;
 	float armYaw = 0.0f;
-	float torsoLean = 0.0f;
+	float torsoRotationX = 0.0f;
+	float torsoRotationY = 0.0f;
+	float torsoRotationZ = 0.0f;
 	float leftLegPitch = 0.0f;
 	float rightLegPitch = 0.0f;
 	float leftKneeFlex = 0.0f;
@@ -24,9 +26,10 @@ struct SkillFrame {
 SkillActionPose action(float armLift = 0.0f, float armReach = 0.0f, float elbowBend = 0.0f,
 	float leftLegPitch = 0.0f, float rightLegPitch = 0.0f, float leftKneeFlex = 0.0f,
 	float rightKneeFlex = 0.0f, float rootY = 0.0f, float forward = 0.0f,
-	float armYaw = 0.0f, float torsoLean = 0.0f) {
-	return { armLift, armReach, elbowBend, armYaw, torsoLean, leftLegPitch, rightLegPitch,
-		leftKneeFlex, rightKneeFlex, rootY, forward };
+	float armYaw = 0.0f, float torsoRotationX = 0.0f,
+	float torsoRotationY = 0.0f, float torsoRotationZ = 0.0f) {
+	return { armLift, armReach, elbowBend, armYaw, torsoRotationX, torsoRotationY, torsoRotationZ,
+		leftLegPitch, rightLegPitch, leftKneeFlex, rightKneeFlex, rootY, forward };
 }
 
 // Shared leg poses keep the repeated kick sequences consistent across skills.
@@ -137,7 +140,9 @@ SkillActionPose mixPose(const SkillActionPose& a, const SkillActionPose& b, floa
 		a.armReach + (b.armReach - a.armReach) * t,
 		a.elbowBend + (b.elbowBend - a.elbowBend) * t,
 		a.armYaw + (b.armYaw - a.armYaw) * t,
-		a.torsoLean + (b.torsoLean - a.torsoLean) * t,
+		a.torsoRotationX + (b.torsoRotationX - a.torsoRotationX) * t,
+		a.torsoRotationY + (b.torsoRotationY - a.torsoRotationY) * t,
+		a.torsoRotationZ + (b.torsoRotationZ - a.torsoRotationZ) * t,
 		a.leftLegPitch + (b.leftLegPitch - a.leftLegPitch) * t,
 		a.rightLegPitch + (b.rightLegPitch - a.rightLegPitch) * t,
 		a.leftKneeFlex + (b.leftKneeFlex - a.leftKneeFlex) * t,
@@ -183,7 +188,9 @@ CharacterPose applyPose(const CharacterPose& base, const SkillActionPose& skillP
 		-(skillPose.rightLegPitch + skillPose.rightKneeFlex));
 	const glm::vec3 forward(std::sin(base.rootYaw), 0.0f, std::cos(base.rootYaw));
 	pose.rootPosition += glm::vec3(0.0f, skillPose.rootY, 0.0f) + forward * skillPose.forward;
-	pose.rootPitch = base.rootPitch + skillPose.torsoLean;
+	pose.torsoRotationX = base.torsoRotationX + skillPose.torsoRotationX;
+	pose.torsoRotationY = base.torsoRotationY + skillPose.torsoRotationY;
+	pose.torsoRotationZ = base.torsoRotationZ + skillPose.torsoRotationZ;
 	return pose;
 }
 
@@ -258,7 +265,9 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		const CharacterPose releasePose = applyPose(app.characterPose, poseAt(skillIndex, animation.elapsed));
 		const glm::mat4 root = glm::translate(glm::mat4(1.0f), releasePose.rootPosition)
 			* glm::rotate(glm::mat4(1.0f), releasePose.rootYaw, glm::vec3(0.0f, 1.0f, 0.0f))
-			* glm::rotate(glm::mat4(1.0f), releasePose.rootPitch, glm::vec3(1.0f, 0.0f, 0.0f));
+			* glm::rotate(glm::mat4(1.0f), releasePose.torsoRotationZ, glm::vec3(0.0f, 0.0f, 1.0f))
+			* glm::rotate(glm::mat4(1.0f), releasePose.torsoRotationY, glm::vec3(0.0f, 1.0f, 0.0f))
+			* glm::rotate(glm::mat4(1.0f), releasePose.torsoRotationX, glm::vec3(1.0f, 0.0f, 0.0f));
 		animation.thrownSwordStart = transformPoint(root, releasePose.leftHandTip);
 		std::random_device randomDevice;
 		std::mt19937 generator(randomDevice());

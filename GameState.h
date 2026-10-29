@@ -7,7 +7,9 @@
 struct CharacterPose {
 	glm::vec3 rootPosition{ 0.35f, 0.0f, 0.0f };
 	float rootYaw = 0.0f;
-	float rootPitch = 0.0f;
+	float torsoRotationX = 0.0f;
+	float torsoRotationY = 0.0f;
+	float torsoRotationZ = 0.0f;
 	glm::vec3 leftShoulder{ 0.52f, 0.76f, 0.00f };
 	glm::vec3 leftElbow{ 0.819f, 0.019f, 0.00f };
 	glm::vec3 leftHandTip{ 1.209f, -0.930f, 0.013f };
