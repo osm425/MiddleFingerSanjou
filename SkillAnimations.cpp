@@ -36,7 +36,7 @@ const SkillActionPose& rightLegRaisedToFace() {
 }
 
 const SkillActionPose& rightLegStompAndLeftKneel() {
-	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, -0.60f, 0.60f, -0.60f, -0.40f, -0.2f, 0.0f, 0.0f, 0.18f);
+	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, -0.20f, 1.20f, -0.80f, -1.20f, -0.6f, 0.0f, 0.0f, 0.18f);
 	return pose;
 }
 
@@ -57,13 +57,13 @@ const SkillActionPose& rightLegHorizontal() {
 
 const std::array<SkillActionPose, 7>& swordComboPoses() {
 	static const std::array<SkillActionPose, 7> poses = {{
-		action(0.35f, 1.35f, 0.20f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.10f, -0.04f), // pull the hand back to the sword grip
-		action(2.18f, 0.60f, 0.00f, -0.22f, 0.38f, 0.0f, 0.15f, 0.0f, 0.0f, -1.00f, 0.0f), // extend the sword arm upward with a slight -X sweep
+		action(0.62f, 1.93f, -1.93f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.10f, -0.04f), // bend the arm back so the hand reaches the sword grip on the back
+		action(2.18f, 0.60f, 0.00f, -0.22f, 0.38f, 0.0f, 0.15f, 0.0f, 0.0f, 1.00f, 0.0f), // extend the sword arm upward with a slight -X sweep
 		action(-0.72f, -1.05f, 0.00f, -0.18f, 0.32f, -0.30f, 0.10f, 0.0f, 0.08f, 0.00f, 0.34f), // swing the sword down in front
-		action(-0.28f, -0.52f, 1.05f, -0.12f, 0.22f, -0.25f, 0.10f, 0.0f, 0.0f, -1.90f, 0.30f), // bend the arm inward with the sword extending left
+		action(2.76f, 1.60f, 1.57f, -0.12f, 0.22f, -0.25f, 0.10f, 0.0f, 0.0f, 0.0f, 0.30f), // raise the elbow and bend the forearm 90 degrees to the character's right
 		action(1.05f, -0.25f, 0.15f, -0.20f, 0.28f, 0.0f, 0.12f, 0.0f, 0.0f, -0.94f, -0.05f), // swing horizontally to the right
 		action(-0.22f, 1.25f, 0.00f, -0.16f, 0.24f, -0.22f, 0.0f, 0.0f, 0.05f, -0.22f, 0.32f), // extend the sword arm backward
-		action(2.12f, 0.85f, 0.00f, -0.18f, 0.30f, 0.0f, 0.12f, 0.0f, 0.0f, 0.22f, -0.08f) // swing forward and upward
+		action(2.12f, 0.85f, 0.00f, -0.18f, 0.30f, 0.0f, 0.12f, 0.0f, -0.05f, 0.22f, -0.08f) // swing forward and upward
 	}};
 	return poses;
 }
@@ -227,7 +227,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		// Skill 5's final horizontal kick is a one-second forward dash, not a pose offset.
 		constexpr double dashStart = 1.5;
 		constexpr double dashDuration = 1.0;
-		constexpr float dashDistance = 5.0f;
+		constexpr float dashDistance = 10.0f;
 		const double previousProgress = std::clamp((previousElapsed - dashStart) / dashDuration, 0.0, 1.0);
 		const double currentProgress = std::clamp((animation.elapsed - dashStart) / dashDuration, 0.0, 1.0);
 		const float distance = dashDistance * static_cast<float>(currentProgress - previousProgress);
