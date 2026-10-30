@@ -76,4 +76,8 @@ dkms.conf
 
 .vs/
 
+*.tlog
+*.res
+*.aps
+
 # End of https://www.toptal.com/developers/gitignore/api/c++,c
