@@ -49,7 +49,7 @@ const SkillActionPose& rightLegTuckedFootDown() {
 }
 
 const SkillActionPose& rightLegExtendedKick() {
-	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, -0.08f, 2.02f, -0.55f, 0.0f, 0.0f, 0.0f, 0.0f, -0.06f);
+	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, -0.08f, 2.02f, -0.55f, 0.0f, 0.0f, 0.0f, 0.0f, -0.06f,0.0f,-0.5f);
 	return pose;
 }
 
@@ -263,11 +263,14 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 	constexpr double swordReleaseTime = 4.0;
 	if (skillIndex == 5 && !animation.swordThrown && previousElapsed < swordReleaseTime && animation.elapsed >= swordReleaseTime) {
 		const CharacterPose releasePose = applyPose(app.characterPose, poseAt(skillIndex, animation.elapsed));
+		const glm::vec3 torsoPivot = (releasePose.leftHip + releasePose.rightHip) * 0.5f;
 		const glm::mat4 root = glm::translate(glm::mat4(1.0f), releasePose.rootPosition)
 			* glm::rotate(glm::mat4(1.0f), releasePose.rootYaw, glm::vec3(0.0f, 1.0f, 0.0f))
+			* glm::translate(glm::mat4(1.0f), torsoPivot)
 			* glm::rotate(glm::mat4(1.0f), releasePose.torsoRotationZ, glm::vec3(0.0f, 0.0f, 1.0f))
 			* glm::rotate(glm::mat4(1.0f), releasePose.torsoRotationY, glm::vec3(0.0f, 1.0f, 0.0f))
-			* glm::rotate(glm::mat4(1.0f), releasePose.torsoRotationX, glm::vec3(1.0f, 0.0f, 0.0f));
+			* glm::rotate(glm::mat4(1.0f), releasePose.torsoRotationX, glm::vec3(1.0f, 0.0f, 0.0f))
+			* glm::translate(glm::mat4(1.0f), -torsoPivot);
 		animation.thrownSwordStart = transformPoint(root, releasePose.leftHandTip);
 		std::random_device randomDevice;
 		std::mt19937 generator(randomDevice());

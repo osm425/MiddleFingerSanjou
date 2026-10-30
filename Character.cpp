@@ -112,34 +112,40 @@ void drawMainScreen(App& app, double now) {
 		const CharacterPose pose = animatedCharacterPose(app);
 		const CharacterRig& rig = app.characterRig;
 		app.ground.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition);
-		const glm::mat4 rootTransform = glm::translate(glm::mat4(1.0f), pose.rootPosition)
-			* glm::rotate(glm::mat4(1.0f), pose.rootYaw, glm::vec3(0.0f, 1.0f, 0.0f))
+		const glm::mat4 characterTransform = glm::translate(glm::mat4(1.0f), pose.rootPosition)
+			* glm::rotate(glm::mat4(1.0f), pose.rootYaw, glm::vec3(0.0f, 1.0f, 0.0f));
+		const glm::vec3 torsoPivot = (pose.leftHip + pose.rightHip) * 0.5f;
+		const glm::mat4 torsoTransform = characterTransform
+			* glm::translate(glm::mat4(1.0f), torsoPivot)
 			* glm::rotate(glm::mat4(1.0f), pose.torsoRotationZ, glm::vec3(0.0f, 0.0f, 1.0f))
 			* glm::rotate(glm::mat4(1.0f), pose.torsoRotationY, glm::vec3(0.0f, 1.0f, 0.0f))
-			* glm::rotate(glm::mat4(1.0f), pose.torsoRotationX, glm::vec3(1.0f, 0.0f, 0.0f));
-		app.model.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, rootTransform);
+			* glm::rotate(glm::mat4(1.0f), pose.torsoRotationX, glm::vec3(1.0f, 0.0f, 0.0f))
+			* glm::translate(glm::mat4(1.0f), -torsoPivot);
+		app.model.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, torsoTransform);
 		if (app.coat.loaded()) {
 			const glm::vec3 coatOffset = app.coat.scaledSourceCenter() - app.model.scaledSourceCenter() + vec3(0.0f, -0.4f, -0.4f);
 			const float runBlend = std::clamp(app.runAnimationBlend, 0.0f, 1.0f);
 			const float capeFlutter = std::sin(app.runAnimationPhase * 2.0f) * 0.035f;
 			const float capeTiltBack = runBlend * (0.12f + capeFlutter);
 			const glm::vec3 capePivot = app.coat.upperOriginAnchor();
-			const glm::mat4 coatTransform = rootTransform
+			const glm::mat4 coatTransform = torsoTransform
 				* glm::translate(glm::mat4(1.0f), coatOffset + capePivot)
 				* glm::rotate(glm::mat4(1.0f), capeTiltBack, glm::vec3(1.0f, 0.0f, 0.0f))
 				* glm::translate(glm::mat4(1.0f), -capePivot);
 			app.coat.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, coatTransform);
 		}
-		// The pose stores joint positions in character-local coordinates; transform them by the root.
+		// Arms follow torso rotation; legs use only the character's position and facing direction.
+		const glm::vec3 torsoForward = glm::normalize(glm::vec3(
+			torsoTransform * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)));
 		const glm::vec3 characterForward = glm::normalize(glm::vec3(
-			rootTransform * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)));
-		const glm::vec3 leftShoulder = transformPoint(rootTransform, pose.leftShoulder);
-		const glm::vec3 leftElbow = transformPoint(rootTransform, pose.leftElbow);
-		const glm::vec3 leftHandTip = transformPoint(rootTransform, pose.leftHandTip);
+			characterTransform * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)));
+		const glm::vec3 leftShoulder = transformPoint(torsoTransform, pose.leftShoulder);
+		const glm::vec3 leftElbow = transformPoint(torsoTransform, pose.leftElbow);
+		const glm::vec3 leftHandTip = transformPoint(torsoTransform, pose.leftHandTip);
 		const glm::mat4 leftUpperArm = boneTransform(leftShoulder, leftElbow,
-			app.limbSegments.upperOriginAnchor(), app.limbSegments.lowerOriginAnchor(), rig.upperArmWidth, characterForward);
+			app.limbSegments.upperOriginAnchor(), app.limbSegments.lowerOriginAnchor(), rig.upperArmWidth, torsoForward);
 		const glm::mat4 leftLowerArm = boneTransform(leftElbow, leftHandTip,
-			app.hands.upperOriginAnchor(), app.hands.lowerOriginAnchor(), rig.lowerArmWidth, characterForward);
+			app.hands.upperOriginAnchor(), app.hands.lowerOriginAnchor(), rig.lowerArmWidth, torsoForward);
 		app.limbSegments.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, leftUpperArm);
 		app.hands.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, leftLowerArm);
 		if (app.swordStage >= 0 && app.swordStage < static_cast<int>(app.swordModels.size())) {
@@ -148,8 +154,8 @@ void drawMainScreen(App& app, double now) {
 				&& (app.skillAnimation.skillIndex == 1 || app.skillAnimation.skillIndex == 5);
 			if (sword.loaded()) {
 				sword.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition,
-					handHeldSkill ? handSwordTransform(sword, rootTransform, pose)
-						: backSwordTransform(sword, rootTransform));
+					handHeldSkill ? handSwordTransform(sword, torsoTransform, pose)
+						: backSwordTransform(sword, torsoTransform));
 			}
 		}
 		if (app.skillAnimation.skillIndex == 5 && app.skillAnimation.thrownSwordVisible
@@ -158,12 +164,12 @@ void drawMainScreen(App& app, double now) {
 				thrownSkillSwordTransform(app));
 		}
 
-		const glm::vec3 leftHip = transformPoint(rootTransform, pose.leftHip);
-		const glm::vec3 rightHip = transformPoint(rootTransform, pose.rightHip);
-		const glm::vec3 leftKnee = transformPoint(rootTransform, pose.leftKnee);
-		const glm::vec3 rightKnee = transformPoint(rootTransform, pose.rightKnee);
-		const glm::vec3 leftFootBase = transformPoint(rootTransform, pose.leftFootBase);
-		const glm::vec3 rightFootBase = transformPoint(rootTransform, pose.rightFootBase);
+		const glm::vec3 leftHip = transformPoint(characterTransform, pose.leftHip);
+		const glm::vec3 rightHip = transformPoint(characterTransform, pose.rightHip);
+		const glm::vec3 leftKnee = transformPoint(characterTransform, pose.leftKnee);
+		const glm::vec3 rightKnee = transformPoint(characterTransform, pose.rightKnee);
+		const glm::vec3 leftFootBase = transformPoint(characterTransform, pose.leftFootBase);
+		const glm::vec3 rightFootBase = transformPoint(characterTransform, pose.rightFootBase);
 		const glm::mat4 leftThigh = boneTransform(leftHip, leftKnee,
 			app.limbSegments.upperOriginAnchor(), app.limbSegments.lowerOriginAnchor(), rig.leftThighWidth, characterForward);
 		const glm::mat4 rightThigh = boneTransform(rightHip, rightKnee,
