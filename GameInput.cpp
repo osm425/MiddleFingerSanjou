@@ -23,9 +23,12 @@ bool skillAvailableForStage(int swordStage, int skillIndex) {
 
 double skillCooldownSeconds(int swordStage, int skillIndex) {
 	static constexpr std::array<double, 6> sealedSwordCooldowns = { 4.0, 6.0, 8.0, 3.0, 5.0, 10.0 };
-	if (swordStage == 0 && skillIndex >= 0 && skillIndex < static_cast<int>(sealedSwordCooldowns.size())) {
+	static constexpr std::array<double, 6> laevateinnCooldowns = { 4.0, 8.0, 10.0, 0.0, 5.0, 16.0 };
+	if (skillIndex < 0 || skillIndex >= static_cast<int>(sealedSwordCooldowns.size())) return SKILL_COOLDOWN_SECONDS;
+	if (swordStage >= 0 && swordStage <= 2) {
 		return sealedSwordCooldowns[skillIndex];
 	}
+	if (swordStage == 3) return laevateinnCooldowns[skillIndex];
 	return SKILL_COOLDOWN_SECONDS;
 }
 
@@ -162,35 +165,62 @@ void activateSkill(App& app, int skillIndex, double now) {
 	const double cooldown = skillCooldownSeconds(stageAtActivation, skillIndex);
 	app.cooldownDurations[skillIndex] = cooldown;
 	app.cooldownEndsAt[skillIndex] = now + cooldown;
-	// Play skill animations through the second unsealed form; skill 6 has a stage-specific release tail.
-	if (stageAtActivation <= 2) {
+	// Laevateinn has its own timing; earlier stages share the sealed sword's animation and cooldowns.
+	if (stageAtActivation <= 3) {
 		app.skillAnimation = {};
 		app.skillAnimation.skillIndex = skillIndex;
 		app.skillAnimation.swordStageAtStart = stageAtActivation;
 		app.skillAnimation.duration = skillAnimationSeconds(skillIndex, stageAtActivation);
-		if (enemyInLockOnRange) {
+		if (stageAtActivation == 3 && enemyInLockOnRange) {
+			app.skillAnimation.enemyHitPending = true;
+		}
+		if (enemyInLockOnRange && stageAtActivation < 3) {
 			app.skillAnimation.lungeDirection = enemyApproachDirection;
 			app.skillAnimation.lungeDistance = ENEMY_LUNGE_DISTANCE;
 			app.skillAnimation.lungeDuration = ENEMY_LUNGE_SECONDS;
 			app.skillAnimation.enemyHitPending = true;
 		}
-		if (skillIndex == 2) {
+		if (stageAtActivation == 3 && app.enemyModel.loaded() && (skillIndex == 2 || skillIndex == 5)) {
+			const glm::vec2 toEnemy(app.enemyPosition.x - app.characterPose.rootPosition.x,
+				app.enemyPosition.z - app.characterPose.rootPosition.z);
+			const float distance = glm::length(toEnemy);
+			if (distance > 1e-4f) {
+				const glm::vec3 direction(toEnemy.x / distance, 0.0f, toEnemy.y / distance);
+				app.skillAnimation.lungeDirection = direction;
+				app.characterPose.rootYaw = std::atan2(direction.x, direction.z);
+				if (skillIndex == 2) {
+					// Move during the kick toward the sword planted at the enemy, so the right foot can reach it.
+					app.skillAnimation.lungeDistance = std::max(0.0f, distance - 1.7f);
+					app.skillAnimation.lungeStart = 3.35;
+					app.skillAnimation.lungeDuration = 1.0;
+					app.skillAnimation.enemyHitPending = true;
+				}
+				else {
+					// Approach the target before charging the horizontal cut.
+					app.skillAnimation.lungeDistance = std::max(0.0f, distance - 2.5f);
+					app.skillAnimation.lungeDuration = app.skillAnimation.lungeDistance / 3.5;
+					app.skillAnimation.duration += app.skillAnimation.lungeDuration;
+					app.skillAnimation.enemyHitPending = true;
+				}
+			}
+		}
+		if (stageAtActivation < 3 && skillIndex == 2) {
 			app.skillAnimation.voiceCueMask |= 0x1u;
 			playSkillVoice(app, L"bored_to_play_1.wav", now);
 		}
-		else if (skillIndex == 4) {
+		else if (stageAtActivation < 3 && skillIndex == 4) {
 			app.skillAnimation.voiceCueMask |= 0x1u;
 			playSkillVoice(app, L"come_on_1.wav", now);
 		}
-		else if (skillIndex == 5 && stageAtActivation == 0) {
+		else if (stageAtActivation < 3 && skillIndex == 5 && stageAtActivation == 0) {
 			app.skillAnimation.voiceCueMask |= 0x1u;
 			playSkillVoice(app, L"pojangji_1.wav", now);
 		}
-		else if (skillIndex == 5 && stageAtActivation == 1) {
+		else if (stageAtActivation < 3 && skillIndex == 5 && stageAtActivation == 1) {
 			app.skillAnimation.voiceCueMask |= 0x1u;
 			playSkillVoice(app, L"pojangji_2.wav", now);
 		}
-		else if (skillIndex == 5 && stageAtActivation == 2) {
+		else if (stageAtActivation < 3 && skillIndex == 5 && stageAtActivation == 2) {
 			app.skillAnimation.voiceCueMask |= 0x1u;
 			playSkillVoice(app, L"pojangji_3.wav", now);
 		}

@@ -51,12 +51,16 @@ struct SkillAnimationState {
 	double thrownSwordFlightDuration = 0.0;
 	glm::vec3 lungeDirection{ 0.0f };
 	float lungeDistance = 0.0f;
+	double lungeStart = 0.0;
 	double lungeDuration = 0.0;
 	bool enemyHitPending = false;
 	bool enemyHitResolved = false;
 	glm::vec3 thrownSwordStart{ 0.0f };
+	glm::vec3 thrownSwordTarget{ 0.0f };
 	glm::vec3 thrownSwordVelocity{ 0.0f };
 	glm::vec3 thrownSwordDirection{ 0.0f, 1.0f, 0.0f };
+	float thrownSwordSpinTurns = 0.0f;
+	bool thrownSwordPlanted = false;
 };
 
 struct VoicePlayback {
@@ -84,6 +88,8 @@ struct App {
 	GroundPlane ground;
 	ObjModel model;
 	ObjModel enemyModel;
+	ObjModel kiModel;
+	ObjModel raModel;
 	glm::vec3 enemyPosition{ 4.0f, FIELD_Y + VESPA_MODEL_EXTENT * 0.5f, 0.0f };
 	float enemyYaw = 0.0f;
 	bool enemyHasBeenHit = false;
@@ -93,7 +99,7 @@ struct App {
 	ObjModel rightFoot;
 	ObjModel coat;
 	std::array<ObjModel, 4> swordModels;
-	std::array<ObjModel, 3> thrownSwordModels;
+	std::array<ObjModel, 4> thrownSwordModels;
 	int swordStage = 0;
 	SkillAnimationState skillAnimation;
 	std::array<VoicePlayback, 3> voicePlayback;

@@ -34,6 +34,10 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	const fs::path modelRoot = assetRoot / L"models";
 	const Texture enemyTexture = assets.loadImage(L"models/vespa1.png");
 	app.enemyModel.load(modelRoot / L"Vespa.obj", enemyTexture, glm::vec3(0.78f, 0.68f, 0.55f), VESPA_MODEL_EXTENT);
+	const Texture kiTexture = assets.loadImage(L"models/Kira_upper.png");
+	const Texture raTexture = assets.loadImage(L"models/Kira_lower.png");
+	app.kiModel.load(modelRoot / L"Ki.obj", kiTexture, glm::vec3(1.0f), VESPA_MODEL_EXTENT);
+	app.raModel.load(modelRoot / L"Ra.obj", raTexture, glm::vec3(1.0f), VESPA_MODEL_EXTENT);
 	app.coat.load(modelRoot / L"coat.obj", Texture{}, glm::vec3(0.14f, 0.09f, 0.22f), 4.4f, app.model.modelScale());
 	const Texture handTexture = assets.loadImage(L"models/hand.png");
 	const Texture leftArmTexture = assets.loadImage(L"models/arm_and_leg.png");
@@ -59,15 +63,17 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 		const Texture swordTexture = assets.loadImage(swordTextureFiles[i]);
 		app.swordModels[i].load(modelRoot / swordFiles[i], swordTexture, glm::vec3(0.82f), 2.8f);
 	}
-	const std::array<const wchar_t*, 3> thrownSwordFiles = {
+	const std::array<const wchar_t*, 4> thrownSwordFiles = {
 		L"sealedsword_nal.obj",
 		L"Firstsealsword_nal.obj",
-		L"secondsealedsword_nal.obj"
+		L"secondsealedsword_nal.obj",
+		L"Laevateinn.obj"
 	};
-	const std::array<const wchar_t*, 3> thrownSwordTextureFiles = {
+	const std::array<const wchar_t*, 4> thrownSwordTextureFiles = {
 		L"models/Sealedsword.png",
 		L"models/FirstSealsword.png",
-		L"models/Secomd_seal_sword.png"
+		L"models/Secomd_seal_sword.png",
+		L"models/Laevateinn.png"
 	};
 	for (size_t i = 0; i < app.thrownSwordModels.size(); ++i) {
 		const Texture swordTexture = assets.loadImage(thrownSwordTextureFiles[i]);
@@ -204,6 +210,8 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	app.ground.release();
 	app.model.release();
 	app.enemyModel.release();
+	app.kiModel.release();
+	app.raModel.release();
 	app.limbSegments.release();
 	app.hands.release();
 	app.leftFoot.release();

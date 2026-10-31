@@ -72,6 +72,16 @@ static glm::vec3 rotateAroundLocalX(const glm::vec3& vector, float angle) {
 	return glm::vec3(vector.x, vector.y * cosine - vector.z * sine, vector.y * sine + vector.z * cosine);
 }
 
+static bool projectToDesign(const glm::vec3& point, const glm::mat4& viewProjection, glm::vec2& output) {
+	const glm::vec4 clip = viewProjection * glm::vec4(point, 1.0f);
+	if (clip.w <= 0.001f) return false;
+	const glm::vec3 ndc = glm::vec3(clip) / clip.w;
+	if (ndc.z < -1.0f || ndc.z > 1.0f) return false;
+	output.x = MODEL_VIEW_RECT.x + (ndc.x + 1.0f) * 0.5f * MODEL_VIEW_RECT.w;
+	output.y = MODEL_VIEW_RECT.y + (1.0f - ndc.y) * 0.5f * MODEL_VIEW_RECT.h;
+	return true;
+}
+
 CharacterPose animatedCharacterPose(const App& app) {
 	if (skillAnimationActive(app)) return animatedSkillPose(app);
 	const CharacterPose& base = app.characterPose;
@@ -119,6 +129,23 @@ void drawMainScreen(App& app, double now) {
 			}
 			app.enemyModel.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, enemyTransform);
 		}
+		if (skillAnimationActive(app) && app.skillAnimation.swordStageAtStart == 3
+			&& app.skillAnimation.skillIndex == 5 && app.kiModel.loaded() && app.raModel.loaded()) {
+			glm::vec3 towardEnemy = app.enemyPosition - app.characterPose.rootPosition;
+			towardEnemy.y = 0.0f;
+			if (glm::length(towardEnemy) < 1e-5f) towardEnemy = glm::vec3(0.0f, 0.0f, 1.0f);
+			towardEnemy = glm::normalize(towardEnemy);
+			const float yaw = std::atan2(towardEnemy.x, towardEnemy.z);
+			const float slashStart = static_cast<float>(app.skillAnimation.lungeDuration + 2.0);
+			const float split = std::clamp((static_cast<float>(app.skillAnimation.elapsed) - slashStart) / 0.45f, 0.0f, 1.0f);
+			const float separation = 0.65f + 1.15f * split;
+			const glm::vec3 center = app.enemyPosition - towardEnemy * 0.16f;
+			const glm::mat4 kiraRotation = glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f));
+			const glm::mat4 kiTransform = glm::translate(glm::mat4(1.0f), center + glm::vec3(0.0f, separation, 0.0f)) * kiraRotation;
+			const glm::mat4 raTransform = glm::translate(glm::mat4(1.0f), center - glm::vec3(0.0f, separation, 0.0f)) * kiraRotation;
+			app.kiModel.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, kiTransform);
+			app.raModel.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, raTransform);
+		}
 		const glm::mat4 characterTransform = glm::translate(glm::mat4(1.0f), pose.rootPosition)
 			* glm::rotate(glm::mat4(1.0f), pose.rootYaw, glm::vec3(0.0f, 1.0f, 0.0f));
 		const glm::vec3 torsoPivot = (pose.leftHip + pose.rightHip) * 0.5f;
@@ -157,15 +184,26 @@ void drawMainScreen(App& app, double now) {
 		app.hands.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, leftLowerArm);
 		if (app.swordStage >= 0 && app.swordStage < static_cast<int>(app.swordModels.size())) {
 			const ObjModel& sword = app.swordModels[app.swordStage];
-			const bool handHeldSkill = skillAnimationActive(app)
-				&& (app.skillAnimation.skillIndex == 1 || app.skillAnimation.skillIndex == 5);
-			if (sword.loaded()) {
+			const bool laevateinnAnimation = skillAnimationActive(app) && app.skillAnimation.swordStageAtStart == 3;
+			const bool handHeldSkill = laevateinnAnimation
+				? (app.skillAnimation.skillIndex == 0 || app.skillAnimation.skillIndex == 1
+					|| app.skillAnimation.skillIndex == 2 || app.skillAnimation.skillIndex == 4
+					|| app.skillAnimation.skillIndex == 5)
+				: (skillAnimationActive(app)
+					&& (app.skillAnimation.skillIndex == 1 || app.skillAnimation.skillIndex == 5));
+			const bool swordIsInFlight = laevateinnAnimation && app.skillAnimation.skillIndex == 2
+				&& app.skillAnimation.thrownSwordVisible;
+			if (sword.loaded() && !swordIsInFlight) {
 				sword.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition,
 					handHeldSkill ? handSwordTransform(sword, torsoTransform, pose)
 						: backSwordTransform(sword, torsoTransform));
 			}
 		}
-		if (app.skillAnimation.skillIndex == 5 && app.skillAnimation.thrownSwordVisible
+		const bool legacyStageUpThrow = app.skillAnimation.skillIndex == 5
+			&& app.skillAnimation.swordStageAtStart < 3;
+		const bool laevateinnSkill3Throw = app.skillAnimation.skillIndex == 2
+			&& app.skillAnimation.swordStageAtStart == 3;
+		if ((legacyStageUpThrow || laevateinnSkill3Throw) && app.skillAnimation.thrownSwordVisible
 			&& app.skillAnimation.thrownSwordStage >= 0
 			&& app.skillAnimation.thrownSwordStage < static_cast<int>(app.thrownSwordModels.size())) {
 			const ObjModel& thrownSword = app.thrownSwordModels[app.skillAnimation.thrownSwordStage];
@@ -194,6 +232,30 @@ void drawMainScreen(App& app, double now) {
 		app.leftFoot.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, leftLowerLeg);
 		app.rightFoot.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, rightLowerLeg);
 		canvas.end3D();
+		if (skillAnimationActive(app) && app.skillAnimation.swordStageAtStart == 3
+			&& app.skillAnimation.skillIndex == 5 && app.skillAnimation.elapsed >= app.skillAnimation.lungeDuration + 2.0
+			&& app.skillAnimation.elapsed < app.skillAnimation.lungeDuration + 2.45) {
+			glm::vec3 towardEnemy = app.enemyPosition - app.characterPose.rootPosition;
+			towardEnemy.y = 0.0f;
+			if (glm::length(towardEnemy) < 1e-5f) towardEnemy = glm::vec3(0.0f, 0.0f, 1.0f);
+			towardEnemy = glm::normalize(towardEnemy);
+			const glm::vec3 side = glm::normalize(glm::cross(glm::vec3(0.0f, 1.0f, 0.0f), towardEnemy));
+			const glm::vec3 slashCenter = app.enemyPosition - towardEnemy * 0.12f;
+			const glm::vec3 slashA = slashCenter - side * 2.65f;
+			const glm::vec3 slashB = slashCenter + side * 2.65f;
+			const glm::mat4 viewProjection = sceneProjectionMatrix(aspect)
+				* sceneViewMatrix(pose.rootPosition, app.cameraYaw, app.cameraPitch);
+			glm::vec2 screenA{}, screenB{};
+			if (projectToDesign(slashA, viewProjection, screenA) && projectToDesign(slashB, viewProjection, screenB)) {
+				const float fade = 1.0f - std::clamp(static_cast<float>(app.skillAnimation.elapsed
+					- app.skillAnimation.lungeDuration - 2.0) / 0.45f, 0.0f, 1.0f);
+				canvas.clipTo(MODEL_VIEW_RECT);
+				canvas.line(screenA.x, screenA.y, screenB.x, screenB.y, 34.0f, rgba(150, 0, 12, static_cast<int>(210 * fade)));
+				canvas.line(screenA.x, screenA.y, screenB.x, screenB.y, 18.0f, rgba(255, 22, 24, static_cast<int>(235 * fade)));
+				canvas.line(screenA.x, screenA.y, screenB.x, screenB.y, 5.0f, rgba(255, 170, 145, static_cast<int>(245 * fade)));
+				canvas.endClip();
+			}
+		}
 	}
 	for (const SkillSlot& slot : SKILL_SLOTS) drawSkillIcon(app, slot, now);
 	

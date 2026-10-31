@@ -52,6 +52,38 @@ public:
 		quad(x, y, w, h, color, 0, false);
 	}
 
+	void line(float x1, float y1, float x2, float y2, float width, Tint color) {
+		const float dx = x2 - x1;
+		const float dy = y2 - y1;
+		const float length = std::sqrt(dx * dx + dy * dy);
+		if (length < 0.001f || width <= 0.0f) return;
+		const float halfWidth = width * 0.5f;
+		const float ox = -dy / length * halfWidth;
+		const float oy = dx / length * halfWidth;
+		const float leftTopX = offsetX_ + (x1 + ox) * scale_;
+		const float leftTopY = offsetY_ + (y1 + oy) * scale_;
+		const float leftBottomX = offsetX_ + (x1 - ox) * scale_;
+		const float leftBottomY = offsetY_ + (y1 - oy) * scale_;
+		const float rightTopX = offsetX_ + (x2 + ox) * scale_;
+		const float rightTopY = offsetY_ + (y2 + oy) * scale_;
+		const float rightBottomX = offsetX_ + (x2 - ox) * scale_;
+		const float rightBottomY = offsetY_ + (y2 - oy) * scale_;
+		const float vertices[24] = {
+			leftTopX, leftTopY, 0, 0, leftBottomX, leftBottomY, 0, 1, rightBottomX, rightBottomY, 1, 1,
+			leftTopX, leftTopY, 0, 0, rightBottomX, rightBottomY, 1, 1, rightTopX, rightTopY, 1, 0
+		};
+		glUniform4f(glGetUniformLocation(program_, "uTint"), color.r, color.g, color.b, color.a);
+		glUniform1i(glGetUniformLocation(program_, "uTextured"), 0);
+		glUniform1i(glGetUniformLocation(program_, "uMasked"), 0);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+		if (sizeof(vertices) > bufferCapacity_) {
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), nullptr, GL_DYNAMIC_DRAW);
+			bufferCapacity_ = sizeof(vertices);
+		}
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
 	void roundedRect(float x, float y, float w, float h, float radius, Tint color) {
 		if (w <= 0.0f || h <= 0.0f) return;
 		const float r = std::clamp(radius, 0.0f, std::min(w, h) * 0.5f);
