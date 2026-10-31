@@ -57,8 +57,20 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 		const Texture swordTexture = assets.loadImage(swordTextureFiles[i]);
 		app.swordModels[i].load(modelRoot / swordFiles[i], swordTexture, glm::vec3(0.82f), 2.8f);
 	}
-	const Texture sealedSwordTexture = assets.loadImage(L"models/Sealedsword.png");
-	app.thrownSealedSword.load(modelRoot / L"sealedsword_nal.obj", sealedSwordTexture, glm::vec3(0.82f), 2.8f);
+	const std::array<const wchar_t*, 3> thrownSwordFiles = {
+		L"sealedsword_nal.obj",
+		L"Firstsealsword_nal.obj",
+		L"secondsealedsword_nal.obj"
+	};
+	const std::array<const wchar_t*, 3> thrownSwordTextureFiles = {
+		L"models/Sealedsword.png",
+		L"models/FirstSealsword.png",
+		L"models/Secomd_seal_sword.png"
+	};
+	for (size_t i = 0; i < app.thrownSwordModels.size(); ++i) {
+		const Texture swordTexture = assets.loadImage(thrownSwordTextureFiles[i]);
+		app.thrownSwordModels[i].load(modelRoot / thrownSwordFiles[i], swordTexture, glm::vec3(0.82f), 2.8f);
+	}
 	const std::array<std::array<const wchar_t*, 6>, 4> skillFiles = {{
 		{{
 			L"wrath1/111px-Stomping_1_Matthias.png",
@@ -195,7 +207,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	app.rightFoot.release();
 	app.coat.release();
 	for (ObjModel& sword : app.swordModels) sword.release();
-	app.thrownSealedSword.release();
+	for (ObjModel& sword : app.thrownSwordModels) sword.release();
 	assets.release();
 	app.canvas.release();
 	Gdiplus::GdiplusShutdown(gdiplusToken);

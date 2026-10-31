@@ -34,12 +34,15 @@ struct CharacterRig {
 
 struct SkillAnimationState {
 	int skillIndex = -1;
+	int swordStageAtStart = 0;
 	double elapsed = 0.0;
 	double duration = 0.0;
 	unsigned voiceCueMask = 0;
 	bool swordThrown = false;
 	bool thrownSwordVisible = false;
+	int thrownSwordStage = 0;
 	double thrownSwordElapsed = 0.0;
+	double thrownSwordFlightDuration = 0.0;
 	glm::vec3 thrownSwordStart{ 0.0f };
 	glm::vec3 thrownSwordVelocity{ 0.0f };
 	glm::vec3 thrownSwordDirection{ 0.0f, 1.0f, 0.0f };
@@ -75,7 +78,7 @@ struct App {
 	ObjModel rightFoot;
 	ObjModel coat;
 	std::array<ObjModel, 4> swordModels;
-	ObjModel thrownSealedSword;
+	std::array<ObjModel, 3> thrownSwordModels;
 	int swordStage = 0;
 	SkillAnimationState skillAnimation;
 	std::array<VoicePlayback, 3> voicePlayback;
@@ -143,7 +146,7 @@ void playSkillVoice(App& app, const wchar_t* fileName, double now);
 void updateVoicePlayback(App& app);
 void stopVoicePlayback(App& app);
 double skillCooldownSeconds(int swordStage, int skillIndex);
-double skillAnimationSeconds(int skillIndex);
+double skillAnimationSeconds(int skillIndex, int swordStage);
 bool skillAnimationActive(const App& app);
 void framebufferCallback(GLFWwindow* window, int width, int height);
 void drawText(Canvas& canvas, Assets& assets, const std::wstring& value, int size, Tint color, float x, float y, bool bold = false);

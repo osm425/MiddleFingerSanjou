@@ -159,9 +159,13 @@ void drawMainScreen(App& app, double now) {
 			}
 		}
 		if (app.skillAnimation.skillIndex == 5 && app.skillAnimation.thrownSwordVisible
-			&& app.thrownSealedSword.loaded()) {
-			app.thrownSealedSword.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition,
-				thrownSkillSwordTransform(app));
+			&& app.skillAnimation.thrownSwordStage >= 0
+			&& app.skillAnimation.thrownSwordStage < static_cast<int>(app.thrownSwordModels.size())) {
+			const ObjModel& thrownSword = app.thrownSwordModels[app.skillAnimation.thrownSwordStage];
+			if (thrownSword.loaded()) {
+				thrownSword.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition,
+					thrownSkillSwordTransform(app));
+			}
 		}
 
 		const glm::vec3 leftHip = transformPoint(characterTransform, pose.leftHip);

@@ -150,10 +150,12 @@ void activateSkill(App& app, int skillIndex, double now) {
 	const double cooldown = skillCooldownSeconds(stageAtActivation, skillIndex);
 	app.cooldownDurations[skillIndex] = cooldown;
 	app.cooldownEndsAt[skillIndex] = now + cooldown;
-	if (stageAtActivation == 0) {
+	// Play skill animations through the second unsealed form; skill 6 has a stage-specific release tail.
+	if (stageAtActivation <= 2) {
 		app.skillAnimation = {};
 		app.skillAnimation.skillIndex = skillIndex;
-		app.skillAnimation.duration = skillAnimationSeconds(skillIndex);
+		app.skillAnimation.swordStageAtStart = stageAtActivation;
+		app.skillAnimation.duration = skillAnimationSeconds(skillIndex, stageAtActivation);
 		if (skillIndex == 2) {
 			app.skillAnimation.voiceCueMask |= 0x1u;
 			playSkillVoice(app, L"bored_to_play_1.wav", now);
@@ -162,14 +164,18 @@ void activateSkill(App& app, int skillIndex, double now) {
 			app.skillAnimation.voiceCueMask |= 0x1u;
 			playSkillVoice(app, L"come_on_1.wav", now);
 		}
-		else if (skillIndex == 5) {
+		else if (skillIndex == 5 && stageAtActivation == 0) {
 			app.skillAnimation.voiceCueMask |= 0x1u;
 			playSkillVoice(app, L"pojangji_1.wav", now);
 		}
-	}
-	else if (skillIndex == 5 && app.swordStage < 3) {
-		// Other sword forms already have their own state handling, but no new animations are added here.
-		++app.swordStage;
+		else if (skillIndex == 5 && stageAtActivation == 1) {
+			app.skillAnimation.voiceCueMask |= 0x1u;
+			playSkillVoice(app, L"pojangji_2.wav", now);
+		}
+		else if (skillIndex == 5 && stageAtActivation == 2) {
+			app.skillAnimation.voiceCueMask |= 0x1u;
+			playSkillVoice(app, L"pojangji_3.wav", now);
+		}
 	}
 }
 
