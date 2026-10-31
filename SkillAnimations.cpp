@@ -21,6 +21,8 @@ struct SkillActionPose {
 struct SkillFrame {
 	SkillActionPose pose;
 	double duration;
+	const wchar_t* voiceOnEnter = nullptr;
+	unsigned voiceCueBit = 0;
 };
 
 constexpr float unsealedSwordForwardSpeed = 20.0f;
@@ -98,9 +100,10 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 			{ rightLegExtendedKick(), 0.2 },
 			{ rightLegTuckedFootDown(), 0.1 },
 			{ rightLegHorizontal(), 0.5 },
-			{ rightLegStompAndLeftKneel(), 0.2 },
+			{ rightLegStompAndLeftKneel(), 0.2, L"bored_to_play_2.wav", 0x2u },
 			{ action(0.0f, 0.0f, 0.0f, -0.35f, 1.48f, -0.85f, 0.0f, 3.0f, 0.0f, 0.0f, -0.05f), 0.8 },
-			{ action(0.0f, 0.0f, 0.0f, -0.30f, 1.78f, -0.55f, 0.0f, 3.0f, 0.0f, 0.0f, -0.03f), 0.1 },
+			{ action(0.0f, 0.0f, 0.0f, -0.30f, 1.78f, -0.55f, 0.0f, 3.0f, 0.0f, 0.0f, -0.03f), 0.1,
+				L"bored_to_play_3.wav", 0x4u },
 			{ rightLegStompAndLeftKneel(), 0.1 },
 			{ rightLegStompAndLeftKneel(), 1.0 }
 		},
@@ -205,34 +208,39 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 			{ combo[1], 0.4 }, { combo[2], 0.45 }
 		};
 		result[1] = { // 2. Two high kicks, one vertical kick, then two three-stab batches and retreat.
-			{ rightLegTuckedFootDown(), 0.05 }, { laevateinnHighKickPose(), 0.05 },
-			{ rightLegTuckedFootDown(), 0.05 }, { laevateinnHighKickPose(), 0.05 },
-			{ rightLegTuckedFootDown(), 0.05 }, { laevateinnVerticalKickPose(), 0.05 },
+			{ rightLegTuckedFootDown(), 0.1 }, { laevateinnHighKickPose(), 0.1 },
+			{ rightLegTuckedFootDown(), 0.1 }, { laevateinnHighKickPose(), 0.1 },
+			{ rightLegTuckedFootDown(), 0.1 }, { laevateinnVerticalKickPose(), 0.1 },
 			{ SkillActionPose{}, 0.1 }
 		};
 		for (int batch = 0; batch < 2; ++batch) {
-			result[1].push_back({ laevateinnHorizontalSlashPose(), 0.05 }); // skill2_7
-			result[1].push_back({ laevateinnStabPose(), 0.05 }); // skill2_15
-			result[1].push_back({ laevateinnStabPose(), 0.05 }); // plant the sword
+			result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1 }); // skill2_7
+			result[1].push_back({ laevateinnStabPose(), 0.1 }); // skill2_15
+			result[1].push_back({ laevateinnStabPose(), 0.1, batch == 0 ? L"is_hot_1.wav" : nullptr,
+				batch == 0 ? 0x2u : 0u }); // plant the sword
 			for (int stab = 0; stab < 3; ++stab) {
-				result[1].push_back({ laevateinnHorizontalSlashPose(), 0.05 });
-				result[1].push_back({ laevateinnStabPose(), 0.05 });
+				result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1 });
+				result[1].push_back({ laevateinnStabPose(), 0.1 });
 			}
 			result[1].push_back({ SkillActionPose{}, 0.1 });
 		}
 		result[1].push_back({ action(1.20f, 0.78f, 0.0f, 0.0f, 0.1f, 0.0f, 0.0f,
-			0.0f, -0.30f, 0.10f, -0.05f), 0.25 }); // skill2_7: withdraw with the sword
+			0.0f, -0.30f, 0.10f, -0.05f), 0.25, L"is_hot_2.wav", 0x4u }); // withdraw with the sword
 
 		result[2] = { // 3. Down, right-to-left, up, heavy down, throw, leap-kick and retrieve.
-			{ combo[1], 0.2 }, { combo[2], 0.3 }, { laevateinnHorizontalSlashPose(), 0.3 },
-			{ laevateinnUpSlashPose(), 0.3 }, { combo[1], 0.2 }, { swordThrowPose(), 0.2 },
-			{ combo[2], 0.4 }, { swordThrowPose(), 0.2 }, { laevateinnHorizontalSlashPose(), 0.25 },
+			{ combo[1], 0.12 }, { combo[2], 0.12 }, { combo[2], 0.2 },
+			{ laevateinnHorizontalSlashPose(), 0.12 }, { laevateinnHorizontalSlashPose(), 0.3 },
+			{ laevateinnUpSlashPose(), 0.12 }, { laevateinnUpSlashPose(), 0.3 },
+			{ combo[1], 0.12 }, { swordThrowPose(), 0.12 }, { combo[2], 0.12 }, { combo[2], 0.4 },
+			{ swordThrowPose(), 0.12 }, { laevateinnHorizontalSlashPose(), 0.12 },
 			{ laevateinnJumpPrepPose(), 1.0 },
-			{ laevateinnKickToSwordPose(), 1.0 }, { laevateinnKneeBendPose(), 1.2 },
+			{ laevateinnKickToSwordPose(), 1.0 }, { laevateinnKneeBendPose(), 1.2,
+				L"bulls_eye_1.wav", 0x2u },
 			{ laevateinnSwordPullPose(), 2.0 }
 		};
 		result[4] = { // 5. Downward strike, then a dashing horizontal cut.
-			{ combo[1], 0.2 }, { combo[2], 0.3 }, { laevateinnHorizontalSlashPose(), 0.6 }
+			{ combo[1], 0.12 }, { combo[2], 0.12, L"come_on_2.wav", 0x2u }, { combo[2], 0.5 },
+			{ laevateinnHorizontalSlashPose(), 0.6 }
 		};
 		return result;
 	}();
@@ -283,10 +291,6 @@ constexpr double swordStrainSeconds = 1.8;
 constexpr double swordReleasePoseTransitionSeconds = 0.25;
 constexpr float swordStrainArmRotation = 0.18f;
 constexpr double swordStrainOscillations = 3.0;
-constexpr double laevateinnSkill3ThrowTime = 2.35;
-constexpr double laevateinnSkill3FlightTime = 1.0;
-constexpr double laevateinnSkill3KneeBendTime = 4.35;
-constexpr double laevateinnSkill3RetrievalTime = 5.55;
 constexpr double laevateinnSkill6HoldBeforeSlash = 2.0;
 constexpr double laevateinnSkill6PostSlashWait = 5.0;
 
@@ -349,10 +353,10 @@ SkillActionPose laevateinnSkill6Pose(double elapsed, double approachDuration) {
 	if (elapsed < approachDuration) {
 		SkillActionPose pose = walkPose;
 		const float stride = std::sin(static_cast<float>(elapsed * 10.6814));
-		pose.leftLegPitch = -stride * 0.42f;
-		pose.rightLegPitch = stride * 0.42f;
-		pose.leftKneeFlex = std::max(0.0f, stride) * 0.55f;
-		pose.rightKneeFlex = std::max(0.0f, -stride) * 0.55f;
+		pose.leftLegPitch = stride * 0.42f;
+		pose.rightLegPitch = -stride * 0.42f;
+		pose.leftKneeFlex = -std::max(0.0f, -stride) * 0.55f;
+		pose.rightKneeFlex = -std::max(0.0f, stride) * 0.55f;
 		return pose;
 	}
 	if (elapsed < approachDuration + 0.25) {
@@ -501,46 +505,40 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 			<= ENEMY_SKILL_HIT_RADIUS * ENEMY_SKILL_HIT_RADIUS) {
 			const glm::vec2 toPlayer = -toEnemy;
 			app.enemyYaw = std::atan2(toPlayer.x, toPlayer.y);
+			app.enemyYawSet = true;
 			app.enemyHasBeenHit = true;
 			animation.enemyHitResolved = true;
 		}
 	}
-	if (animation.swordStageAtStart == 3) {
-		if (skillIndex == 1 && animation.elapsed >= 0.5 && (animation.voiceCueMask & 0x2u) == 0) {
-			animation.voiceCueMask |= 0x2u;
-			playSkillVoice(app, L"is_hot_1.wav", now);
+	const std::vector<SkillFrame>& actionFrames = animation.swordStageAtStart == 3
+		? laevateinnSkillFrames()[skillIndex] : sealedSkillFrames()[skillIndex];
+	double actionStart = 0.0;
+	for (const SkillFrame& frame : actionFrames) {
+		if (frame.voiceOnEnter) {
+			const bool enteringAtStart = actionStart <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0;
+			const bool crossedActionStart = previousElapsed < actionStart && animation.elapsed >= actionStart;
+			if ((enteringAtStart || crossedActionStart)
+				&& (animation.voiceCueMask & frame.voiceCueBit) == 0) {
+				animation.voiceCueMask |= frame.voiceCueBit;
+				playSkillVoice(app, frame.voiceOnEnter, now);
+			}
 		}
-		if (skillIndex == 1 && animation.elapsed >= 1.5 && (animation.voiceCueMask & 0x4u) == 0) {
-			animation.voiceCueMask |= 0x4u;
-			playSkillVoice(app, L"is_hot_2.wav", now);
-		}
-		if (skillIndex == 2 && animation.elapsed >= laevateinnSkill3KneeBendTime && (animation.voiceCueMask & 0x2u) == 0) {
-			animation.voiceCueMask |= 0x2u;
-			playSkillVoice(app, L"bulls_eye_1.wav", now);
-		}
-		if (skillIndex == 4 && animation.elapsed >= 0.2 && (animation.voiceCueMask & 0x2u) == 0) {
-			animation.voiceCueMask |= 0x2u;
-			playSkillVoice(app, L"come_on_2.wav", now);
-		}
-		if (skillIndex == 5 && animation.elapsed >= animation.lungeDuration
-			&& (animation.voiceCueMask & 0x1u) == 0) {
+		actionStart += frame.duration;
+	}
+	if (animation.swordStageAtStart == 3 && skillIndex == 5) {
+		const auto crossedActionStart = [previousElapsed, &animation](double start) {
+			return (previousElapsed < start && animation.elapsed >= start)
+				|| (start <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0);
+		};
+		// These cues are bound to the transition into the wind-up and horizontal-cut poses.
+		if (crossedActionStart(animation.lungeDuration) && (animation.voiceCueMask & 0x1u) == 0) {
 			animation.voiceCueMask |= 0x1u;
 			playSkillVoice(app, L"kidslash1.wav", now);
 		}
-		if (skillIndex == 5 && animation.elapsed >= animation.lungeDuration + laevateinnSkill6HoldBeforeSlash
+		if (crossedActionStart(animation.lungeDuration + laevateinnSkill6HoldBeforeSlash)
 			&& (animation.voiceCueMask & 0x2u) == 0) {
 			animation.voiceCueMask |= 0x2u;
 			playSkillVoice(app, L"kidslash2.wav", now);
-		}
-	}
-	else if (skillIndex == 2) {
-		if (animation.elapsed >= 0.9 && (animation.voiceCueMask & 0x2u) == 0) {
-			animation.voiceCueMask |= 0x2u;
-			playSkillVoice(app, L"bored_to_play_2.wav", now);
-		}
-		if (animation.elapsed >= 1.9 && (animation.voiceCueMask & 0x4u) == 0) {
-			animation.voiceCueMask |= 0x4u;
-			playSkillVoice(app, L"bored_to_play_3.wav", now);
 		}
 	}
 
@@ -560,7 +558,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		applyDash(1.6, 0.45, 6.0f);
 	}
 	else if (animation.swordStageAtStart == 3 && skillIndex == 4) {
-		applyDash(0.5, 0.6, 6.0f);
+		applyDash(LAEVATEINN_SKILL5_DASH_START, 0.6, 6.0f);
 	}
 	else if (animation.swordStageAtStart != 3 && skillIndex == 4) {
 		// Skill 5's final horizontal kick is a one-second forward dash, not a pose offset.
@@ -570,7 +568,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 	const bool unsealSkill = skillIndex == 5 && animation.swordStageAtStart >= 0
 		&& animation.swordStageAtStart <= 2;
 	const bool laevateinnThrowSkill = skillIndex == 2 && animation.swordStageAtStart == 3;
-	const double swordReleaseTime = laevateinnThrowSkill ? laevateinnSkill3ThrowTime
+	const double swordReleaseTime = laevateinnThrowSkill ? LAEVATEINN_SKILL3_THROW_TIME
 		: (animation.swordStageAtStart == 0 ? 4.0 : unsealedSwordReleaseTime());
 	if ((unsealSkill || laevateinnThrowSkill) && !animation.swordThrown
 		&& previousElapsed < swordReleaseTime && animation.elapsed >= swordReleaseTime) {
@@ -594,7 +592,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		if (laevateinnThrowSkill) {
 			animation.thrownSwordTarget = app.enemyPosition;
 			animation.thrownSwordTarget.y = FIELD_Y + 1.35f;
-			flightTime = laevateinnSkill3FlightTime;
+			flightTime = LAEVATEINN_SKILL3_FLIGHT_TIME;
 			const glm::vec3 displacement = animation.thrownSwordTarget - animation.thrownSwordStart;
 			animation.thrownSwordVelocity = displacement / static_cast<float>(flightTime);
 			animation.thrownSwordSpinTurns = 3.0f;
@@ -645,7 +643,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 				animation.thrownSwordPlanted = true;
 				animation.thrownSwordDirection = glm::vec3(0.0f, -1.0f, 0.0f);
 			}
-			if (animation.elapsed >= laevateinnSkill3RetrievalTime) animation.thrownSwordVisible = false;
+			if (animation.elapsed >= LAEVATEINN_SKILL3_RETRIEVAL_TIME) animation.thrownSwordVisible = false;
 		}
 		else if (animation.thrownSwordStage == 0) {
 			if (position.y <= FIELD_Y + 1.35f) animation.thrownSwordVisible = false;

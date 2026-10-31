@@ -82,6 +82,9 @@ static bool projectToDesign(const glm::vec3& point, const glm::mat4& viewProject
 	return true;
 }
 
+// Shared vertices around the open cut boundary in Ki.obj and Ra.obj.
+static const glm::vec3 KIRA_CUT_JOIN_SOURCE(-0.03792675f, 2.53850525f, -1.6860115f);
+
 CharacterPose animatedCharacterPose(const App& app) {
 	if (skillAnimationActive(app)) return animatedSkillPose(app);
 	const CharacterPose& base = app.characterPose;
@@ -124,7 +127,7 @@ void drawMainScreen(App& app, double now) {
 		app.ground.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition);
 		if (app.enemyModel.loaded()) {
 			glm::mat4 enemyTransform = glm::translate(glm::mat4(1.0f), app.enemyPosition);
-			if (app.enemyHasBeenHit) {
+			if (app.enemyYawSet) {
 				enemyTransform *= glm::rotate(glm::mat4(1.0f), app.enemyYaw, glm::vec3(0.0f, 1.0f, 0.0f));
 			}
 			app.enemyModel.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, enemyTransform);
@@ -138,11 +141,16 @@ void drawMainScreen(App& app, double now) {
 			const float yaw = std::atan2(towardEnemy.x, towardEnemy.z);
 			const float slashStart = static_cast<float>(app.skillAnimation.lungeDuration + 2.0);
 			const float split = std::clamp((static_cast<float>(app.skillAnimation.elapsed) - slashStart) / 0.45f, 0.0f, 1.0f);
-			const float separation = 0.65f + 1.15f * split;
-			const glm::vec3 center = app.enemyPosition - towardEnemy * 0.16f;
+			const float separation = 1.15f * split;
+			const glm::vec3 center = app.enemyPosition - towardEnemy * 1.0f;
 			const glm::mat4 kiraRotation = glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f));
-			const glm::mat4 kiTransform = glm::translate(glm::mat4(1.0f), center + glm::vec3(0.0f, separation, 0.0f)) * kiraRotation;
-			const glm::mat4 raTransform = glm::translate(glm::mat4(1.0f), center - glm::vec3(0.0f, separation, 0.0f)) * kiraRotation;
+			const float commonScale = app.kiModel.modelScale();
+			const glm::vec3 kiAnchorOffset = (app.kiModel.sourceCenter() - KIRA_CUT_JOIN_SOURCE) * commonScale;
+			const glm::vec3 raAnchorOffset = (app.raModel.sourceCenter() - KIRA_CUT_JOIN_SOURCE) * commonScale;
+			const glm::mat4 kiTransform = glm::translate(glm::mat4(1.0f), center + glm::vec3(0.0f, separation, 0.0f))
+				* kiraRotation * glm::translate(glm::mat4(1.0f), kiAnchorOffset);
+			const glm::mat4 raTransform = glm::translate(glm::mat4(1.0f), center - glm::vec3(0.0f, separation, 0.0f))
+				* kiraRotation * glm::translate(glm::mat4(1.0f), raAnchorOffset);
 			app.kiModel.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, kiTransform);
 			app.raModel.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, raTransform);
 		}

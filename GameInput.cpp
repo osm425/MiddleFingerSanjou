@@ -191,12 +191,14 @@ void activateSkill(App& app, int skillIndex, double now) {
 				if (skillIndex == 2) {
 					// Move during the kick toward the sword planted at the enemy, so the right foot can reach it.
 					app.skillAnimation.lungeDistance = std::max(0.0f, distance - 1.7f);
-					app.skillAnimation.lungeStart = 3.35;
+					app.skillAnimation.lungeStart = LAEVATEINN_SKILL3_KICK_START;
 					app.skillAnimation.lungeDuration = 1.0;
 					app.skillAnimation.enemyHitPending = true;
 				}
 				else {
 					// Approach the target before charging the horizontal cut.
+					app.enemyYaw = std::atan2(-direction.x, -direction.z);
+					app.enemyYawSet = true;
 					app.skillAnimation.lungeDistance = std::max(0.0f, distance - 2.5f);
 					app.skillAnimation.lungeDuration = app.skillAnimation.lungeDistance / 3.5;
 					app.skillAnimation.duration += app.skillAnimation.lungeDuration;
@@ -234,6 +236,7 @@ void confirmReturnToStart(App& app) {
 	stopVoicePlayback(app);
 	app.swordStage = 0;
 	app.enemyYaw = 0.0f;
+	app.enemyYawSet = false;
 	app.enemyHasBeenHit = false;
 	app.characterPose.rootPosition = app.initialCharacterPosition;
 	app.characterPose.rootYaw = app.initialCharacterYaw;

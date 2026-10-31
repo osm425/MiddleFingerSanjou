@@ -8,6 +8,12 @@ static constexpr float ENEMY_LOCKON_RADIUS = 14.0f;
 static constexpr float ENEMY_SKILL_HIT_RADIUS = 5.0f;
 static constexpr float ENEMY_LUNGE_DISTANCE = 1.2f;
 static constexpr double ENEMY_LUNGE_SECONDS = 0.3;
+static constexpr double LAEVATEINN_SKILL3_THROW_TIME = 2.28;
+static constexpr double LAEVATEINN_SKILL3_FLIGHT_TIME = 1.0;
+static constexpr double LAEVATEINN_SKILL3_KICK_START = LAEVATEINN_SKILL3_THROW_TIME + LAEVATEINN_SKILL3_FLIGHT_TIME;
+static constexpr double LAEVATEINN_SKILL3_KNEE_BEND_TIME = LAEVATEINN_SKILL3_KICK_START + 1.0;
+static constexpr double LAEVATEINN_SKILL3_RETRIEVAL_TIME = LAEVATEINN_SKILL3_KNEE_BEND_TIME + 1.2;
+static constexpr double LAEVATEINN_SKILL5_DASH_START = 0.12 + 0.12 + 0.5;
 
 // Joint coordinates are local to the character root and can be updated by an animation later.
 struct CharacterPose {
@@ -92,6 +98,7 @@ struct App {
 	ObjModel raModel;
 	glm::vec3 enemyPosition{ 4.0f, FIELD_Y + VESPA_MODEL_EXTENT * 0.5f, 0.0f };
 	float enemyYaw = 0.0f;
+	bool enemyYawSet = false;
 	bool enemyHasBeenHit = false;
 	ObjModel limbSegments;
 	ObjModel hands;

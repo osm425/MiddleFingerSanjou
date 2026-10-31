@@ -223,6 +223,7 @@ void main() {
 	glm::vec3 upperOriginAnchor() const { return { localOrigin_.x, localBoundsMax_.y, localOrigin_.z }; }
 	glm::vec3 lowerOriginAnchor() const { return { localOrigin_.x, localBoundsMin_.y, localOrigin_.z }; }
 	float modelScale() const { return modelScale_; }
+	glm::vec3 sourceCenter() const { return sourceCenter_; }
 	glm::vec3 scaledSourceCenter() const { return sourceCenter_ * modelScale_; }
 	glm::vec3 swordGripAnchor() const {
 		const float handleOffset = (localBoundsMax_.y - localBoundsMin_.y) * 0.13f;
