@@ -32,6 +32,8 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	const Texture modelTexture = assets.loadImage(L"models/bodytexture.png");
 	app.model.load(assetRoot / L"models" / L"Matthias.obj", modelTexture);
 	const fs::path modelRoot = assetRoot / L"models";
+	const Texture enemyTexture = assets.loadImage(L"models/vespa1.png");
+	app.enemyModel.load(modelRoot / L"Vespa.obj", enemyTexture, glm::vec3(0.78f, 0.68f, 0.55f), VESPA_MODEL_EXTENT);
 	app.coat.load(modelRoot / L"coat.obj", Texture{}, glm::vec3(0.14f, 0.09f, 0.22f), 4.4f, app.model.modelScale());
 	const Texture handTexture = assets.loadImage(L"models/hand.png");
 	const Texture leftArmTexture = assets.loadImage(L"models/arm_and_leg.png");
@@ -201,6 +203,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	PlaySoundW(nullptr, nullptr, 0);
 	app.ground.release();
 	app.model.release();
+	app.enemyModel.release();
 	app.limbSegments.release();
 	app.hands.release();
 	app.leftFoot.release();

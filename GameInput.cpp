@@ -146,6 +146,18 @@ void playSkillVoice(App& app, const wchar_t* fileName, double now) {
 void activateSkill(App& app, int skillIndex, double now) {
 	if (!skillAvailableForStage(app.swordStage, skillIndex)) return;
 	if (skillAnimationActive(app) || app.cooldownEndsAt[skillIndex] > now) return;
+	bool enemyInLockOnRange = false;
+	glm::vec3 enemyApproachDirection(0.0f);
+	if (app.enemyModel.loaded()) {
+		const glm::vec2 toEnemy(app.enemyPosition.x - app.characterPose.rootPosition.x,
+			app.enemyPosition.z - app.characterPose.rootPosition.z);
+		const float distanceSquared = glm::dot(toEnemy, toEnemy);
+		if (distanceSquared > 1e-6f && distanceSquared <= ENEMY_LOCKON_RADIUS * ENEMY_LOCKON_RADIUS) {
+			app.characterPose.rootYaw = std::atan2(toEnemy.x, toEnemy.y);
+			enemyApproachDirection = glm::vec3(toEnemy.x, 0.0f, toEnemy.y) / std::sqrt(distanceSquared);
+			enemyInLockOnRange = true;
+		}
+	}
 	const int stageAtActivation = app.swordStage;
 	const double cooldown = skillCooldownSeconds(stageAtActivation, skillIndex);
 	app.cooldownDurations[skillIndex] = cooldown;
@@ -156,6 +168,12 @@ void activateSkill(App& app, int skillIndex, double now) {
 		app.skillAnimation.skillIndex = skillIndex;
 		app.skillAnimation.swordStageAtStart = stageAtActivation;
 		app.skillAnimation.duration = skillAnimationSeconds(skillIndex, stageAtActivation);
+		if (enemyInLockOnRange) {
+			app.skillAnimation.lungeDirection = enemyApproachDirection;
+			app.skillAnimation.lungeDistance = ENEMY_LUNGE_DISTANCE;
+			app.skillAnimation.lungeDuration = ENEMY_LUNGE_SECONDS;
+			app.skillAnimation.enemyHitPending = true;
+		}
 		if (skillIndex == 2) {
 			app.skillAnimation.voiceCueMask |= 0x1u;
 			playSkillVoice(app, L"bored_to_play_1.wav", now);
@@ -185,6 +203,8 @@ void confirmReturnToStart(App& app) {
 	app.skillAnimation = {};
 	stopVoicePlayback(app);
 	app.swordStage = 0;
+	app.enemyYaw = 0.0f;
+	app.enemyHasBeenHit = false;
 	app.characterPose.rootPosition = app.initialCharacterPosition;
 	app.characterPose.rootYaw = app.initialCharacterYaw;
 	app.runAnimationPhase = 0.0f;

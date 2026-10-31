@@ -112,6 +112,13 @@ void drawMainScreen(App& app, double now) {
 		const CharacterPose pose = animatedCharacterPose(app);
 		const CharacterRig& rig = app.characterRig;
 		app.ground.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition);
+		if (app.enemyModel.loaded()) {
+			glm::mat4 enemyTransform = glm::translate(glm::mat4(1.0f), app.enemyPosition);
+			if (app.enemyHasBeenHit) {
+				enemyTransform *= glm::rotate(glm::mat4(1.0f), app.enemyYaw, glm::vec3(0.0f, 1.0f, 0.0f));
+			}
+			app.enemyModel.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, enemyTransform);
+		}
 		const glm::mat4 characterTransform = glm::translate(glm::mat4(1.0f), pose.rootPosition)
 			* glm::rotate(glm::mat4(1.0f), pose.rootYaw, glm::vec3(0.0f, 1.0f, 0.0f));
 		const glm::vec3 torsoPivot = (pose.leftHip + pose.rightHip) * 0.5f;

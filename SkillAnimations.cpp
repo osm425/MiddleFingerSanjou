@@ -173,6 +173,18 @@ double unsealedSwordReleaseTime() {
 		+ swordPullbackTransitionSeconds + swordStrainSeconds + swordReleasePoseTransitionSeconds;
 }
 
+double enemyHitTime(int skillIndex, int swordStage) {
+	switch (skillIndex) {
+	case 0: return 0.5; // stomp impact
+	case 1: return 0.6; // first sword slash
+	case 2: return 0.1; // first kick
+	case 3: return 0.2; // kick impact
+	case 4: return 1.5; // forward dash kick
+	case 5: return swordStage == 0 ? 4.0 : unsealedSwordReleaseTime();
+	default: return 0.0;
+	}
+}
+
 const SkillActionPose& unsealedSwordPullbackPose() {
 	static const SkillActionPose pose = action(
 		1.57f, -1.57f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.32f);
@@ -294,6 +306,35 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 	const int skillIndex = animation.skillIndex;
 	const double previousElapsed = animation.elapsed;
 	animation.elapsed = std::min(animation.duration, animation.elapsed + static_cast<double>(deltaTime));
+	if (animation.lungeDistance > 0.0f && animation.lungeDuration > 0.0) {
+		const auto smoothProgress = [](double value) {
+			const float t = static_cast<float>(std::clamp(value, 0.0, 1.0));
+			return t * t * (3.0f - 2.0f * t);
+		};
+		const double previousProgress = smoothProgress(previousElapsed / animation.lungeDuration);
+		const double currentProgress = smoothProgress(animation.elapsed / animation.lungeDuration);
+		const float stepDistance = animation.lungeDistance
+			* static_cast<float>(currentProgress - previousProgress);
+		if (stepDistance > 0.0f) {
+			glm::vec3 nextPosition = app.characterPose.rootPosition + animation.lungeDirection * stepDistance;
+			const float fieldLimit = FIELD_HALF_EXTENT - CHARACTER_FIELD_MARGIN;
+			nextPosition.x = std::clamp(nextPosition.x, -fieldLimit, fieldLimit);
+			nextPosition.z = std::clamp(nextPosition.z, -fieldLimit, fieldLimit);
+			app.characterPose.rootPosition = nextPosition;
+		}
+	}
+	if (animation.enemyHitPending && !animation.enemyHitResolved
+		&& animation.elapsed >= enemyHitTime(skillIndex, animation.swordStageAtStart)) {
+		const glm::vec2 toEnemy(app.enemyPosition.x - app.characterPose.rootPosition.x,
+			app.enemyPosition.z - app.characterPose.rootPosition.z);
+		if (app.enemyModel.loaded() && glm::dot(toEnemy, toEnemy)
+			<= ENEMY_SKILL_HIT_RADIUS * ENEMY_SKILL_HIT_RADIUS) {
+			const glm::vec2 toPlayer = -toEnemy;
+			app.enemyYaw = std::atan2(toPlayer.x, toPlayer.y);
+			app.enemyHasBeenHit = true;
+			animation.enemyHitResolved = true;
+		}
+	}
 	if (skillIndex == 4) {
 		// Skill 5's final horizontal kick is a one-second forward dash, not a pose offset.
 		constexpr double dashStart = 1.5;
