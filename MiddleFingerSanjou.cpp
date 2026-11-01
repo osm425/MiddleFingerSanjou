@@ -36,8 +36,8 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	app.enemyModel.load(modelRoot / L"Vespa.obj", enemyTexture, glm::vec3(0.78f, 0.68f, 0.55f), VESPA_MODEL_EXTENT);
 	const Texture kiTexture = assets.loadImage(L"models/Kira_upper.png");
 	const Texture raTexture = assets.loadImage(L"models/Kira_lower.png");
-	app.kiModel.load(modelRoot / L"Ki.obj", kiTexture, glm::vec3(1.0f), VESPA_MODEL_EXTENT);
-	app.raModel.load(modelRoot / L"Ra.obj", raTexture, glm::vec3(1.0f), VESPA_MODEL_EXTENT,
+	app.kiModel.load(modelRoot / L"Ki.obj", kiTexture, glm::vec3(1.0f), VESPA_MODEL_EXTENT/2);
+	app.raModel.load(modelRoot / L"Ra.obj", raTexture, glm::vec3(1.0f), VESPA_MODEL_EXTENT/2,
 		app.kiModel.modelScale());
 	app.coat.load(modelRoot / L"coat.obj", Texture{}, glm::vec3(0.14f, 0.09f, 0.22f), 4.4f, app.model.modelScale());
 	const Texture handTexture = assets.loadImage(L"models/hand.png");

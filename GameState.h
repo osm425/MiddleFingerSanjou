@@ -3,7 +3,7 @@
 #include "RenderResources.h"
 #include <atomic>
 
-static constexpr float VESPA_MODEL_EXTENT = 3.8f;
+static constexpr float VESPA_MODEL_EXTENT = 4.5f;
 static constexpr float ENEMY_LOCKON_RADIUS = 14.0f;
 static constexpr float ENEMY_SKILL_HIT_RADIUS = 5.0f;
 static constexpr float ENEMY_LUNGE_DISTANCE = 1.2f;
