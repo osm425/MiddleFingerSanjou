@@ -199,7 +199,17 @@ void activateSkill(App& app, int skillIndex, double now) {
 					// Approach the target before charging the horizontal cut.
 					app.enemyYaw = std::atan2(-direction.x, -direction.z);
 					app.enemyYawSet = true;
-					app.skillAnimation.lungeDistance = std::max(0.0f, distance - 2.5f);
+					const glm::vec3 kiraCenter = app.enemyPosition
+						- direction * LAEVATEINN_SKILL6_KIRA_FORWARD_OFFSET;
+					const glm::vec2 toKira(kiraCenter.x - app.characterPose.rootPosition.x,
+						kiraCenter.z - app.characterPose.rootPosition.z);
+					const float distanceToKira = glm::length(toKira);
+					if (distanceToKira > 1e-4f) {
+						app.skillAnimation.lungeDirection = glm::vec3(
+							toKira.x / distanceToKira, 0.0f, toKira.y / distanceToKira);
+					}
+					app.skillAnimation.lungeDistance = std::max(0.0f,
+						distanceToKira - LAEVATEINN_SKILL6_STOP_DISTANCE_FROM_KIRA);
 					app.skillAnimation.lungeDuration = app.skillAnimation.lungeDistance / 3.5;
 					app.skillAnimation.duration += app.skillAnimation.lungeDuration;
 					app.skillAnimation.enemyHitPending = true;

@@ -142,7 +142,7 @@ void drawMainScreen(App& app, double now) {
 			const float slashStart = static_cast<float>(app.skillAnimation.lungeDuration + 2.0);
 			const float split = std::clamp((static_cast<float>(app.skillAnimation.elapsed) - slashStart) / 0.45f, 0.0f, 1.0f);
 			const float separation = 1.15f * split;
-			const glm::vec3 center = app.enemyPosition - towardEnemy * 1.0f;
+			const glm::vec3 center = app.enemyPosition - towardEnemy * LAEVATEINN_SKILL6_KIRA_FORWARD_OFFSET;
 			const glm::mat4 kiraRotation = glm::rotate(glm::mat4(1.0f), yaw, glm::vec3(0.0f, 1.0f, 0.0f));
 			const float commonScale = app.kiModel.modelScale();
 			const glm::vec3 kiAnchorOffset = (app.kiModel.sourceCenter() - KIRA_CUT_JOIN_SOURCE) * commonScale;
