@@ -3,8 +3,38 @@
 #pragma comment(lib, "gdiplus.lib")
 #pragma comment(lib, "winmm.lib")
 
+
+GLFWwindow* createOpenGLWindow(int width, int height, const char* title) {
+	if (!glfwInit()) return nullptr;
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+	GLFWwindow* window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+	if (!window) {
+		glfwTerminate();
+		return nullptr;
+	}
+	glfwMakeContextCurrent(window);
+	glViewport(0, 0, width, height);
+
+	glewExperimental = GL_TRUE;
+	if (glewInit() != GLEW_OK) {
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return nullptr;
+	}
+	return window;
+}
+
+
 int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
-	GLFWwindow* window = initwindow(1280, 720, "Middle Finger Sanjou - UI Prototype");
+	GLFWwindow* window = createOpenGLWindow(1280, 720, "Middle Finger Sanjou - UI Prototype");
 	if (!window) {
 		std::cerr << "Could not create the OpenGL window." << std::endl;
 		return -1;

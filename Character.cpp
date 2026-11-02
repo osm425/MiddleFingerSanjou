@@ -165,7 +165,8 @@ void drawMainScreen(App& app, double now) {
 			* glm::translate(glm::mat4(1.0f), -torsoPivot);
 		app.model.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, torsoTransform);
 		if (app.coat.loaded()) {
-			const glm::vec3 coatOffset = app.coat.scaledSourceCenter() - app.model.scaledSourceCenter() + vec3(0.0f, -0.4f, -0.4f);
+			const glm::vec3 coatOffset = app.coat.scaledSourceCenter() - app.model.scaledSourceCenter()
+				+ glm::vec3(0.0f, -0.4f, -0.4f);
 			const float runBlend = std::clamp(app.runAnimationBlend, 0.0f, 1.0f);
 			const float capeFlutter = std::sin(app.runAnimationPhase * 2.0f) * 0.035f;
 			const float capeTiltBack = runBlend * (0.12f + capeFlutter);

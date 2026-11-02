@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <objidl.h>
 #include <gdiplus.h>
-#include "common.cpp"
+#include "framework.h"
 
 #include <algorithm>
 #include <array>

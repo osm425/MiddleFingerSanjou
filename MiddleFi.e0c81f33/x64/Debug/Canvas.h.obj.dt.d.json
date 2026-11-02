@@ -1,10 +1,10 @@
 {
     "Version": "1.2",
     "Data": {
-        "Source": "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanuou\\canvas.h",
+        "Source": "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanjou\\canvas.h",
         "ProvidedModule": "",
         "Includes": [
-            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanuou\\rendertypes.h",
+            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanjou\\rendertypes.h",
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\windows.h",
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\shared\\winapifamily.h",
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\shared\\winpackagefamily.h",
@@ -270,9 +270,9 @@
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\gdiplusbitmap.h",
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\gdiplusimagecodec.h",
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\shared\\poppack.h",
-            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanuou\\common.cpp",
-            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanuou\\framework.h",
-            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanuou\\targetver.h",
+            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanjou\\common.cpp",
+            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanjou\\framework.h",
+            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanjou\\targetver.h",
             "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.52.37025\\include\\fstream",
             "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.52.37025\\include\\yvals_core.h",
             "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.52.37025\\include\\xkeycheck.h",
@@ -600,8 +600,8 @@
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\gl\\glm\\ext\\vector_uint1.hpp",
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\gl\\glm\\ext\\vector_uint1_sized.hpp",
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\gl\\glm\\gtc\\type_ptr.inl",
-            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanuou\\middlefingersanjou.h",
-            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanuou\\resource.h",
+            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanjou\\middlefingersanjou.h",
+            "c:\\users\\osm04\\documents\\comgraproj\\middlefingersanjou\\resource.h",
             "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.52.37025\\include\\array",
             "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.52.37025\\include\\filesystem",
             "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.52.37025\\include\\chrono",
@@ -631,7 +631,8 @@
             "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.52.37025\\include\\xsmf_control.h",
             "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.52.37025\\include\\sstream",
             "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.52.37025\\include\\map",
-            "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.52.37025\\include\\xtree"
+            "c:\\program files\\microsoft visual studio\\18\\insiders\\vc\\tools\\msvc\\14.52.37025\\include\\xtree",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\mmsystem.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []
