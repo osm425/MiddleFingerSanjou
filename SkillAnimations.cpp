@@ -27,7 +27,7 @@ struct SkillFrame {
 
 constexpr float unsealedSwordForwardSpeed = 20.0f;
 constexpr float unsealedSwordFlightDistance = 20.0f;
-constexpr float thrownSwordGravity = 9.8f;
+constexpr double sealedSwordThrowFlightSeconds = 1.1;
 
 SkillActionPose action(float armLift = 0.0f, float armReach = 0.0f, float elbowBend = 0.0f,
 	float leftLegPitch = 0.0f, float rightLegPitch = 0.0f, float leftKneeFlex = 0.0f,
@@ -40,12 +40,12 @@ SkillActionPose action(float armLift = 0.0f, float armReach = 0.0f, float elbowB
 
 // Shared leg poses keep the repeated kick sequences consistent across skills.
 const SkillActionPose& rightLegRaisedToFace() {
-	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, 0.0f, 2.50f, 0.0f, -1.00f);
+	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, 0.0f, 2.50f, 0.0f, -1.00f, 0.0f, 0.0f, 0.0f, -0.1f, 0.2f);
 	return pose;
 }
 
 const SkillActionPose& rightLegStompAndLeftKneel() {
-	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, 0.20f, 1.20f, -1.20f, -1.20f, -0.6f, 0.0f, 0.0f, 0.18f);
+	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, 0.20f, 1.20f, -1.20f, -1.20f, -0.6f, 0.0f, 0.0f, 0.18f,0.2f);
 	return pose;
 }
 
@@ -66,7 +66,7 @@ const SkillActionPose& rightLegHorizontal() {
 
 const std::array<SkillActionPose, 7>& swordComboPoses() {
 	static const std::array<SkillActionPose, 7> poses = {{
-		action(0.62f, 1.93f, -1.93f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.10f, -0.04f), // bend the arm back so the hand reaches the sword grip on the back
+		action(2.2f, 1.20f, -2.40f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.04f), // bend the arm back so the hand reaches the sword grip on the back
 		action(2.18f, 0.60f, 0.00f, -0.22f, 0.38f, 0.0f, 0.15f, 0.0f, 0.0f, 1.00f, 0.0f), // extend the sword arm upward with a slight -X sweep
 		action(-0.72f, -1.05f, 0.00f, -0.18f, 0.32f, -0.30f, 0.10f, 0.0f, 0.08f, 0.00f, 0.34f), // swing the sword down in front
 		action(2.76f, 1.60f, 1.57f, -0.12f, 0.22f, -0.25f, 0.10f, 0.0f, 0.0f, 0.0f, 0.30f), // raise the elbow and bend the forearm 90 degrees to the character's right
@@ -92,8 +92,8 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 			{ rightLegExtendedKick(), 1.0 }
 		},
 		{ // 2. Seven-part sword combo
-			{ combo[0], 0.1 }, { combo[1], 0.5 }, { combo[2], 0.5 }, { combo[3], 0.5 },
-			{ combo[4], 0.6 }, { combo[5], 0.6 }, { combo[6], 1.0 }
+			{ combo[0], 0.05 }, { combo[1], 0.5 }, { combo[2], 0.5 }, { combo[3], 0.5 },
+			{ combo[4], 0.6 }, { combo[5], 0.8 }, { combo[6], 1.0 }
 		},
 		{ // 3. Repeated kicks, jump, and landing
 			{ rightLegTuckedFootDown(), 0.1 },
@@ -101,10 +101,9 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 			{ rightLegTuckedFootDown(), 0.1 },
 			{ rightLegHorizontal(), 0.5 },
 			{ rightLegStompAndLeftKneel(), 0.2, L"bored_to_play_2.wav", 0x2u },
-			{ action(0.0f, 0.0f, 0.0f, -0.35f, 1.48f, -0.85f, 0.0f, 3.0f, 0.0f, 0.0f, -0.05f), 0.8 },
-			{ action(0.0f, 0.0f, 0.0f, -0.30f, 1.78f, -0.55f, 0.0f, 3.0f, 0.0f, 0.0f, -0.03f), 0.1,
+			{ action(0.0f, 0.0f, 0.0f, -0.35f, 1.48f, -0.85f, 0.0f, 3.0f, 0.0f, 0.0f, -0.05f,0.4f), 0.8 },
+			{ action(0.0f, 0.0f, 0.0f, -0.30f, 1.78f, -0.55f, 0.0f, 3.0f, 0.0f, 0.0f, -0.03f,0.4f), 0.1,
 				L"bored_to_play_3.wav", 0x4u },
-			{ rightLegStompAndLeftKneel(), 0.1 },
 			{ rightLegStompAndLeftKneel(), 1.0 }
 		},
 		{ // 4. Reuse tuck / kick / tuck / horizontal kick poses
@@ -431,6 +430,23 @@ glm::vec3 transformPoint(const glm::mat4& transform, const glm::vec3& point) {
 	return glm::vec3(transform * glm::vec4(point, 1.0f));
 }
 
+glm::vec3 swordAxisAcrossEnemy(const App& app) {
+	glm::vec3 enemyForward;
+	if (app.enemyYawSet) {
+		enemyForward = glm::vec3(std::sin(app.enemyYaw), 0.0f, std::cos(app.enemyYaw));
+	}
+	else {
+		enemyForward = app.characterPose.rootPosition - app.enemyPosition;
+		enemyForward.y = 1.0f;
+	}
+	if (glm::length(enemyForward) < 1e-5f) enemyForward = glm::vec3(0.0f, 0.0f, 1.0f);
+	else enemyForward = glm::normalize(enemyForward);
+
+	const glm::vec3 acrossEnemy = glm::cross(glm::vec3(0.0f, 0.0f, 0.0f), enemyForward);
+	return glm::length(acrossEnemy) < 1e-5f
+		? glm::vec3(1.0f, 0.0f, 0.0f)
+		: glm::normalize(acrossEnemy);
+}
 glm::mat4 alignPositiveY(const glm::vec3& direction) {
 	const glm::vec3 source(0.0f, 1.0f, 0.0f);
 	const glm::vec3 target = glm::normalize(direction);
@@ -582,7 +598,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		animation.thrownSwordPlanted = false;
 		if (laevateinnThrowSkill) {
 			animation.thrownSwordTarget = app.enemyPosition;
-			animation.thrownSwordTarget.y = FIELD_Y + 1.35f;
+			animation.thrownSwordTarget.y = FIELD_Y + 3.0f;
 			flightTime = LAEVATEINN_SKILL3_FLIGHT_TIME;
 			const glm::vec3 displacement = animation.thrownSwordTarget - animation.thrownSwordStart;
 			animation.thrownSwordVelocity = displacement / static_cast<float>(flightTime);
@@ -595,11 +611,10 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 			std::uniform_real_distribution<float> angleDistribution(-3.14159265f, 3.14159265f);
 			const float angle = releasePose.rootYaw + angleDistribution(generator);
 			const glm::vec3 horizontal(std::sin(angle), 0.0f, std::cos(angle));
-			animation.thrownSwordVelocity = horizontal * 3.0f + glm::vec3(0.0f, 3.5f, 0.0f);
 			const float dropHeight = std::max(0.0f, animation.thrownSwordStart.y - (FIELD_Y + 1.35f));
-			flightTime = (animation.thrownSwordVelocity.y
-				+ std::sqrt(animation.thrownSwordVelocity.y * animation.thrownSwordVelocity.y
-					+ 2.0f * thrownSwordGravity * dropHeight)) / thrownSwordGravity;
+			flightTime = sealedSwordThrowFlightSeconds;
+			animation.thrownSwordVelocity = horizontal * 3.0f
+				+ glm::vec3(0.0f, -dropHeight / static_cast<float>(flightTime), 0.0f);
 		}
 		else {
 			const glm::vec3 forward(std::sin(releasePose.rootYaw), 0.0f, std::cos(releasePose.rootYaw));
@@ -623,21 +638,14 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 	}
 
 	if (animation.swordThrown && animation.thrownSwordVisible) {
-		const float gravity = animation.thrownSwordStage == 0 ? thrownSwordGravity : 0.0f;
 		const float t = static_cast<float>(animation.thrownSwordElapsed);
-		const glm::vec3 currentVelocity = animation.thrownSwordVelocity + glm::vec3(0.0f, -gravity * t, 0.0f);
-		animation.thrownSwordDirection = glm::normalize(currentVelocity);
-		const glm::vec3 position = animation.thrownSwordStart + animation.thrownSwordVelocity * t
-			+ glm::vec3(0.0f, -0.5f * gravity * t * t, 0.0f);
+		animation.thrownSwordDirection = glm::normalize(animation.thrownSwordVelocity);
 		if (animation.swordStageAtStart == 3 && skillIndex == 2) {
 			if (animation.thrownSwordElapsed >= animation.thrownSwordFlightDuration) {
 				animation.thrownSwordPlanted = true;
-				animation.thrownSwordDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+				animation.thrownSwordDirection = swordAxisAcrossEnemy(app);
 			}
 			if (animation.elapsed >= LAEVATEINN_SKILL3_RETRIEVAL_TIME) animation.thrownSwordVisible = false;
-		}
-		else if (animation.thrownSwordStage == 0) {
-			if (position.y <= FIELD_Y + 1.35f) animation.thrownSwordVisible = false;
 		}
 		else if (animation.thrownSwordElapsed >= animation.thrownSwordFlightDuration) {
 			animation.thrownSwordVisible = false;
@@ -649,20 +657,24 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 glm::mat4 thrownSkillSwordTransform(const App& app) {
 	const SkillAnimationState& animation = app.skillAnimation;
 	if (animation.thrownSwordPlanted) {
-		const glm::mat4 vertical = alignPositiveY(glm::vec3(0.0f, -1.0f, 0.0f));
-		return glm::translate(glm::mat4(1.0f), animation.thrownSwordTarget) * vertical;
+		// The blade axis lies horizontally across the enemy's facing direction.
+		const glm::mat4 horizontal = alignPositiveY(animation.thrownSwordDirection);
+		return glm::translate(glm::mat4(1.0f), animation.thrownSwordTarget) * horizontal;
 	}
 	const float t = static_cast<float>(animation.thrownSwordElapsed);
-	const float gravity = animation.thrownSwordStage == 0 ? thrownSwordGravity : 0.0f;
-	const glm::vec3 position = animation.thrownSwordStart + animation.thrownSwordVelocity * t
-		+ glm::vec3(0.0f, -0.5f * gravity * t * t, 0.0f);
+	const glm::vec3 position = animation.thrownSwordStart + animation.thrownSwordVelocity * t;
 	glm::mat4 rotation = alignPositiveY(animation.thrownSwordDirection);
 	if (animation.thrownSwordSpinTurns > 0.0f && animation.thrownSwordFlightDuration > 0.0) {
 		const float progress = std::clamp(t / static_cast<float>(animation.thrownSwordFlightDuration), 0.0f, 1.0f);
-		rotation *= glm::rotate(glm::mat4(1.0f), progress * animation.thrownSwordSpinTurns * 6.28318530718f,
+		// Spin around world Y so the sword rotates in the ground-parallel XZ plane.
+		const glm::mat4 groundPlaneSpin = glm::rotate(glm::mat4(1.0f),
+			progress * animation.thrownSwordSpinTurns * 6.28318530718f,
 			glm::vec3(0.0f, 1.0f, 0.0f));
+		rotation = groundPlaneSpin * rotation;
 	}
 	return glm::translate(glm::mat4(1.0f), position) * rotation;
 }
+
+
 
 
