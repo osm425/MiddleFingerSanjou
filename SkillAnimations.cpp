@@ -65,11 +65,11 @@ const SkillActionPose& rightLegHorizontal() {
 }
 
 const std::array<SkillActionPose, 7>& swordComboPoses() {
-	static const std::array<SkillActionPose, 7> poses = {{
-		action(2.2f, 1.20f, -2.40f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.04f), // bend the arm back so the hand reaches the sword grip on the back
-		action(2.18f, 0.60f, 0.00f, -0.22f, 0.38f, 0.0f, 0.15f, 0.0f, 0.0f, 1.00f, 0.0f), // extend the sword arm upward with a slight -X sweep
-		action(-0.72f, -1.05f, 0.00f, -0.18f, 0.32f, -0.30f, 0.10f, 0.0f, 0.08f, 0.00f, 0.34f), // swing the sword down in front
-		action(2.76f, 1.60f, 1.57f, -0.12f, 0.22f, -0.25f, 0.10f, 0.0f, 0.0f, 0.0f, 0.30f), // raise the elbow and bend the forearm 90 degrees to the character's right
+	static const std::array<SkillActionPose, 7> poses = { {
+		action(2.0f, -0.5f, 1.6f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.04f), // bend the arm back so the hand reaches the sword grip on the back
+		action(0.0f, -3.60f, 0.00f, -0.60f, 0.72f, -0.10f, -0.72f, 0.0f, 0.0f, 0.000f, -0.1f), // extend the sword arm upward with a slight -X sweep
+		action(0.00f, -1.5f, 0.00f, -0.9f, 1.5f, -0.30f, -1.60f, -0.8f, 0.0f, -0.5f, 0.5f), // swing the sword down in front
+		action(2.76f, 1.60f, 1.57f, -0.9f, 1.5f, -0.30f, -1.60f, -0.8f, 0.0f, 0.0f, 0.30f), // raise the elbow and bend the forearm 90 degrees to the character's right
 		action(-1.05f, 1.25f, 0.15f, -0.20f, 0.28f, 0.0f, 0.12f, 0.0f, 0.0f, -0.94f, -0.05f), // swing horizontally to the right
 		action(-0.22f, 1.25f, 0.00f, -0.16f, 0.24f, -0.22f, 0.0f, 0.0f, 0.05f, -0.22f, 0.32f), // extend the sword arm backward
 		action(2.72f, 0.85f, 0.00f, -0.18f, 0.30f, 0.0f, 0.12f, 0.0f, -0.05f, -1.0f, -0.08f) // swing forward and upward
