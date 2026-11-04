@@ -125,11 +125,26 @@ layout (location = 2) in vec2 aTexcoord;
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
+uniform int uShadowPass;
+uniform float uGroundY;
+uniform float uShadowOffset;
+uniform float uShadowOpacity;
+uniform vec3 uShadowDirection;
 out vec3 vWorldPosition;
 out vec3 vWorldNormal;
 out vec2 vTexcoord;
+out float vShadowAlpha;
 void main() {
 	vec4 worldPosition = uModel * vec4(aPosition, 1.0);
+	vShadowAlpha = 0.0;
+	if (uShadowPass != 0) {
+		float sourceHeight = max(0.0, worldPosition.y - uGroundY);
+		vec3 rayDirection = normalize(uShadowDirection);
+		float distanceToGround = max(0.0, (uGroundY - worldPosition.y) / rayDirection.y);
+		worldPosition.xyz += rayDirection * distanceToGround;
+		worldPosition.y = uGroundY + uShadowOffset;
+		vShadowAlpha = uShadowOpacity * exp(-sourceHeight * 0.08);
+	}
 	vWorldPosition = worldPosition.xyz;
 	vWorldNormal = mat3(transpose(inverse(uModel))) * aNormal;
 	vTexcoord = aTexcoord;
@@ -141,12 +156,18 @@ void main() {
 in vec3 vWorldPosition;
 in vec3 vWorldNormal;
 in vec2 vTexcoord;
+in float vShadowAlpha;
+uniform int uShadowPass;
 uniform vec3 uCameraPosition;
 uniform sampler2D uAlbedoTexture;
 uniform int uHasAlbedoTexture;
 uniform vec3 uDefaultColor;
 out vec4 outColor;
 void main() {
+	if (uShadowPass != 0) {
+		outColor = vec4(0.008, 0.007, 0.011, vShadowAlpha);
+		return;
+	}
 	vec3 normal = normalize(vWorldNormal);
 	vec3 lightDirection = normalize(vec3(-0.45, 0.82, 0.56));
 	vec3 viewDirection = normalize(uCameraPosition - vWorldPosition);
@@ -209,6 +230,18 @@ void main() {
 		glUniformMatrix4fv(glGetUniformLocation(program_, "uModel"), 1, GL_FALSE, glm::value_ptr(modelTransform));
 		glUniformMatrix4fv(glGetUniformLocation(program_, "uView"), 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(glGetUniformLocation(program_, "uProjection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniform1i(glGetUniformLocation(program_, "uShadowPass"), 1);
+		glUniform1f(glGetUniformLocation(program_, "uGroundY"), FIELD_Y);
+		glUniform1f(glGetUniformLocation(program_, "uShadowOffset"), 0.018f);
+		glUniform1f(glGetUniformLocation(program_, "uShadowOpacity"), 0.18f);
+		glUniform3f(glGetUniformLocation(program_, "uShadowDirection"), 0.45f, -1.0f, -0.56f);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(GL_FALSE);
+		glBindVertexArray(vao_);
+		glDrawArrays(GL_TRIANGLES, 0, vertexCount_);
+		glDepthMask(GL_TRUE);
+		glUniform1i(glGetUniformLocation(program_, "uShadowPass"), 0);
 		glUniform3fv(glGetUniformLocation(program_, "uCameraPosition"), 1, glm::value_ptr(cameraPosition));
 		glUniform3fv(glGetUniformLocation(program_, "uDefaultColor"), 1, glm::value_ptr(defaultColor_));
 		glUniform1i(glGetUniformLocation(program_, "uAlbedoTexture"), 0);
@@ -311,6 +344,7 @@ void main() {
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
 		glEnableVertexAttribArray(0);
 		glBindVertexArray(0);
+		initializeShadow();
 		return true;
 	}
 
@@ -329,16 +363,124 @@ void main() {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
+	void drawShadow(float aspect, float cameraYaw, float cameraPitch, const glm::vec3& cameraTarget,
+		const glm::vec3& characterPosition, float characterYaw, float footClearance) const {
+		if (!shadowProgram_ || !shadowVao_) return;
+		const float height = std::clamp(footClearance, 0.0f, 6.0f);
+		const float radiusX = 0.72f + height * 0.10f;
+		const float radiusZ = 0.42f + height * 0.08f;
+		const float opacity = std::clamp(0.20f - height * 0.02f, 0.08f, 0.20f);
+		const glm::vec3 shadowPosition(characterPosition.x, FIELD_Y + 0.012f, characterPosition.z);
+		const glm::mat4 modelTransform = glm::translate(glm::mat4(1.0f), shadowPosition)
+			* glm::rotate(glm::mat4(1.0f), characterYaw, glm::vec3(0.0f, 1.0f, 0.0f))
+			* glm::scale(glm::mat4(1.0f), glm::vec3(radiusX, 1.0f, radiusZ));
+		const glm::mat4 view = sceneViewMatrix(cameraTarget, cameraYaw, cameraPitch);
+		const glm::mat4 projection = sceneProjectionMatrix(aspect);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(GL_FALSE);
+		glUseProgram(shadowProgram_);
+		glUniformMatrix4fv(glGetUniformLocation(shadowProgram_, "uModel"), 1, GL_FALSE, glm::value_ptr(modelTransform));
+		glUniformMatrix4fv(glGetUniformLocation(shadowProgram_, "uView"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(glGetUniformLocation(shadowProgram_, "uProjection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniform1f(glGetUniformLocation(shadowProgram_, "uOpacity"), opacity);
+		glBindVertexArray(shadowVao_);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, shadowVertexCount_);
+		glBindVertexArray(0);
+		glUseProgram(0);
+		glDepthMask(GL_TRUE);
+	}
+
 	void release() {
 		if (vbo_) glDeleteBuffers(1, &vbo_);
 		if (vao_) glDeleteVertexArrays(1, &vao_);
 		if (program_) glDeleteProgram(program_);
+		if (shadowVbo_) glDeleteBuffers(1, &shadowVbo_);
+		if (shadowVao_) glDeleteVertexArrays(1, &shadowVao_);
+		if (shadowProgram_) glDeleteProgram(shadowProgram_);
 		vbo_ = vao_ = program_ = 0;
+		shadowVbo_ = shadowVao_ = shadowProgram_ = 0;
+		shadowVertexCount_ = 0;
 	}
 
 private:
+	void initializeShadow() {
+		static const char* vertexSource = R"GLSL(
+#version 330 core
+layout (location = 0) in vec3 aPosition;
+uniform mat4 uModel;
+uniform mat4 uView;
+uniform mat4 uProjection;
+out vec2 vLocal;
+void main() {
+	vLocal = aPosition.xz;
+	gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
+}
+)GLSL";
+		static const char* fragmentSource = R"GLSL(
+#version 330 core
+in vec2 vLocal;
+uniform float uOpacity;
+out vec4 outColor;
+void main() {
+	float edge = length(vLocal);
+	float alpha = (1.0 - smoothstep(0.42, 1.0, edge)) * uOpacity;
+	if (alpha < 0.003) discard;
+	outColor = vec4(0.012, 0.010, 0.016, alpha);
+}
+)GLSL";
+		const GLuint vertexShader = compileStage(GL_VERTEX_SHADER, vertexSource);
+		const GLuint fragmentShader = compileStage(GL_FRAGMENT_SHADER, fragmentSource);
+		if (!vertexShader || !fragmentShader) {
+			if (vertexShader) glDeleteShader(vertexShader);
+			if (fragmentShader) glDeleteShader(fragmentShader);
+			return;
+		}
+		shadowProgram_ = glCreateProgram();
+		glAttachShader(shadowProgram_, vertexShader);
+		glAttachShader(shadowProgram_, fragmentShader);
+		glLinkProgram(shadowProgram_);
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+		GLint linked = GL_FALSE;
+		glGetProgramiv(shadowProgram_, GL_LINK_STATUS, &linked);
+		if (linked == GL_FALSE) {
+			GLint length = 0;
+			glGetProgramiv(shadowProgram_, GL_INFO_LOG_LENGTH, &length);
+			std::string log(static_cast<size_t>(std::max(1, length)), '\0');
+			glGetProgramInfoLog(shadowProgram_, length, nullptr, log.data());
+			std::cerr << "Shadow shader link error: " << log << std::endl;
+			glDeleteProgram(shadowProgram_);
+			shadowProgram_ = 0;
+			return;
+		}
+
+		constexpr int segments = 48;
+		std::vector<float> vertices;
+		vertices.reserve(static_cast<size_t>(segments + 2) * 3);
+		vertices.insert(vertices.end(), { 0.0f, 0.0f, 0.0f });
+		for (int i = 0; i <= segments; ++i) {
+			const float angle = 6.28318530718f * static_cast<float>(i) / static_cast<float>(segments);
+			vertices.insert(vertices.end(), { std::cos(angle), 0.0f, std::sin(angle) });
+		}
+		shadowVertexCount_ = static_cast<GLsizei>(segments + 2);
+		glGenVertexArrays(1, &shadowVao_);
+		glGenBuffers(1, &shadowVbo_);
+		glBindVertexArray(shadowVao_);
+		glBindBuffer(GL_ARRAY_BUFFER, shadowVbo_);
+		glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size() * sizeof(float)), vertices.data(), GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
+		glEnableVertexAttribArray(0);
+		glBindVertexArray(0);
+	}
+
 	GLuint vao_ = 0;
 	GLuint vbo_ = 0;
 	GLuint program_ = 0;
+	GLuint shadowVao_ = 0;
+	GLuint shadowVbo_ = 0;
+	GLuint shadowProgram_ = 0;
+	GLsizei shadowVertexCount_ = 0;
 };
 

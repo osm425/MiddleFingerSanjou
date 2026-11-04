@@ -125,6 +125,10 @@ void drawMainScreen(App& app, double now) {
 		const CharacterPose pose = animatedCharacterPose(app);
 		const CharacterRig& rig = app.characterRig;
 		app.ground.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition);
+		const float lowestFootY = pose.rootPosition.y + std::min(pose.leftFootBase.y, pose.rightFootBase.y);
+		const float footClearance = std::max(0.0f, lowestFootY - FIELD_Y);
+		app.ground.drawShadow(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition,
+			pose.rootPosition, pose.rootYaw, footClearance);
 		if (app.enemyModel.loaded()) {
 			glm::mat4 enemyTransform = glm::translate(glm::mat4(1.0f), app.enemyPosition);
 			if (app.enemyYawSet) {
