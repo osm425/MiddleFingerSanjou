@@ -21,6 +21,9 @@ static constexpr float LAEVATEINN_SKILL6_STOP_DISTANCE_FROM_KIRA = 2.5f;
 struct CharacterPose {
 	glm::vec3 rootPosition{ 0.35f, 0.0f, 0.0f };
 	float rootYaw = 0.0f;
+	// Character-local +Y sword axis target and blend: 0 follows the forearm, 1 locks to this direction.
+	glm::vec3 heldSwordDirection{ 0.0f, 0.0f, 1.0f };
+	float heldSwordDirectionLock = 0.0f;
 	float torsoRotationX = 0.0f;
 	float torsoRotationY = 0.0f;
 	float torsoRotationZ = 0.0f;

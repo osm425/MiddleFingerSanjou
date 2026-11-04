@@ -171,6 +171,10 @@ void activateSkill(App& app, int skillIndex, double now) {
 		app.skillAnimation.skillIndex = skillIndex;
 		app.skillAnimation.swordStageAtStart = stageAtActivation;
 		app.skillAnimation.duration = skillAnimationSeconds(skillIndex, stageAtActivation);
+		if (skillIndex == 5) {
+			app.skillAnimation.thrownSwordStart = app.characterPose.rootPosition;
+			app.skillAnimation.thrownSwordTarget = app.characterPose.rootPosition;
+		}
 		if (stageAtActivation == 3 && enemyInLockOnRange) {
 			app.skillAnimation.enemyHitPending = true;
 		}
