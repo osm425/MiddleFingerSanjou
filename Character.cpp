@@ -52,20 +52,15 @@ static glm::mat4 backSwordTransform(const ObjModel& sword, const glm::mat4& root
 
 static glm::mat4 handSwordTransform(const ObjModel& sword, const glm::mat4& rootTransform,
 	const CharacterPose& pose) {
-	// Keep the grip at the animated hand; optionally blend from forearm alignment to a pose-locked direction.
+	// Keep the grip at the animated hand; use a supplied local direction or follow the forearm.
 	glm::vec3 armDirection = pose.leftHandTip - pose.leftElbow;
 	if (glm::length(armDirection) < 1e-6f) armDirection = glm::vec3(0.0f, -1.0f, 0.0f);
 	else armDirection = glm::normalize(armDirection);
-	glm::vec3 bladeDirection = armDirection;
-	const float directionLock = std::clamp(pose.heldSwordDirectionLock, 0.0f, 1.0f);
-	if (directionLock > 0.0f && glm::length(pose.heldSwordDirection) > 1e-6f) {
-		const glm::vec3 fixedDirection = glm::normalize(pose.heldSwordDirection);
-		const glm::vec3 blendedDirection = glm::mix(armDirection, fixedDirection, directionLock);
-		bladeDirection = glm::length(blendedDirection) > 1e-6f
-			? glm::normalize(blendedDirection) : fixedDirection;
-	}
+	const glm::vec3 bladeDirection = glm::length(pose.heldSwordDirection) > 1e-6f
+		? glm::normalize(pose.heldSwordDirection) : armDirection;
 	glm::mat4 rotation = alignPositiveY(glm::normalize(bladeDirection));
 	rotation = rotation * glm::rotate(glm::mat4(1.0f), 1.57079632679f, glm::vec3(0.0f, 1.0f, 0.0f));
+	rotation = rotation * glm::rotate(glm::mat4(1.0f), pose.heldSwordRotationY, glm::vec3(0.0f, 1.0f, 0.0f));
 	const glm::vec3 rotatedGripAnchor = glm::vec3(rotation * glm::vec4(sword.swordGripAnchor(), 0.0f));
 	const glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), pose.leftHandTip - rotatedGripAnchor) * rotation;
 	return rootTransform * localTransform;

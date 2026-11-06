@@ -16,8 +16,8 @@ struct SkillActionPose {
 	float rightKneeFlex = 0.0f;
 	float rootY = 0.0f;
 	float forward = 0.0f;
-	glm::vec3 heldSwordDirection{ 0.0f, 0.0f, 1.0f };
-	float heldSwordDirectionLock = 0.0f;
+	glm::vec3 heldSwordDirection{ 0.0f };
+	float heldSwordRotationY = 0.0f;
 };
 
 struct SkillFrame {
@@ -36,11 +36,12 @@ SkillActionPose action(float armLift = 0.0f, float armReach = 0.0f, float elbowB
 	float rightKneeFlex = 0.0f, float rootY = 0.0f, float forward = 0.0f,
 	float armYaw = 0.0f, float torsoRotationX = 0.0f,
 	float torsoRotationY = 0.0f, float torsoRotationZ = 0.0f,
-	glm::vec3 heldSwordDirection = glm::vec3(0.0f, 0.0f, 1.0f),
-	float heldSwordDirectionLock = 0.0f) {
+	float heldSwordRotationY = 0.0f,
+	glm::vec3 heldSwordDirection = glm::vec3(0.0f)
+	) {
 	return { armLift, armReach, elbowBend, armYaw, torsoRotationX, torsoRotationY, torsoRotationZ,
 		leftLegPitch, rightLegPitch, leftKneeFlex, rightKneeFlex, rootY, forward,
-		heldSwordDirection, heldSwordDirectionLock };
+		heldSwordDirection, heldSwordRotationY };
 }
 
 // Shared leg poses keep the repeated kick sequences consistent across skills.
@@ -71,13 +72,13 @@ const SkillActionPose& rightLegHorizontal() {
 
 const std::array<SkillActionPose, 7>& swordComboPoses() {
 	static const std::array<SkillActionPose, 7> poses = { {
-		action(2.0f, -0.5f, 1.6f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.04f), // bend the arm back so the hand reaches the sword grip on the back
+		action(2.0f, -0.8f, 1.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.04f,0.0f,0.0f), // bend the arm back so the hand reaches the sword grip on the back
 		action(0.0f, -3.60f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.3f, 0.0f, 0.0f, -0.1f), // extend the sword arm upward with a slight -X sweep
-		action(0.5f, 0.0f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.0f, -0.65f, 0.5f), // swing the sword down in front
-		action(2.76f, 1.6f, 1.57f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.0f, 0.0f, 0.3f), // raise the elbow and bend the forearm 90 degrees to the character's right
-		action(0.5f, 0.0f, 0.0f, -0.7f, 0.7f, 0.0f, 0.0f, -0.3f, 0.0f, 1.0f, -0.05f,0.5f), // swing horizontally to the right
+		action(0.8f, 0.0f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.0f, -1.50f, 0.6f,0.0f,0.0f, -1.12f,glm::vec3(0.0f,1.0f,1.0f)), // swing the sword down in front
+		action(2.76f, 1.6f, 1.57f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.0f, 0.0f, 0.3f,0.0f,0.0f,-1.12f), // raise the elbow and bend the forearm 90 degrees to the character's right
+		action(0.5f, 0.0f, 0.0f, -0.7f, 0.7f, 0.0f, 0.0f, -0.3f, 0.0f, 1.0f, -0.05f,0.5f,0.0f,-1.8f), // swing horizontally to the right
 		action(-0.22f, 1.25f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.05f, -0.22f, 0.32f), // extend the sword arm backward
-		action(2.72f, 0.85f, 0.0f, -0.18f, 0.3f, 0.0f, 0.12f, 0.0f, -0.05f, -1.0f, -0.2f,-0.4f) // swing forward and upward
+		action(2.72f, 0.85f, 0.0f, 1.12f, -0.9f, -0.72f, -0.3f, -0.5f, 0.5f, -1.0f, -0.2f,-0.4f) // swing forward and upward
 	}};
 	return poses;
 }
@@ -220,16 +221,18 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 		for (int batch = 0; batch < 2; ++batch) {
 			result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1 }); // skill2_7
 			result[1].push_back({ laevateinnStabPose(), 0.1 }); // skill2_15
-			result[1].push_back({ laevateinnStabPose(), 0.1, batch == 0 ? L"is_hot_1.wav" : nullptr,
+			result[1].push_back({ laevateinnStabPose(), 0.2, batch == 0 ? L"is_hot_1.wav" : nullptr,
 				batch == 0 ? 0x2u : 0u }); // plant the sword
 			for (int stab = 0; stab < 3; ++stab) {
 				result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1 });
 				result[1].push_back({ laevateinnStabPose(), 0.1 });
 			}
-			result[1].push_back({ SkillActionPose{}, 0.1 });
+			result[1].push_back({ SkillActionPose{}, 0.2 });
 		}
 		result[1].push_back({ action(1.20f, 0.78f, 0.0f, 0.0f, 0.1f, 0.0f, 0.0f,
 			0.0f, -0.30f, 0.10f, -0.05f), 0.25, L"is_hot_2.wav", 0x4u }); // withdraw with the sword
+
+
 
 		result[2] = { // 3. Down, right-to-left, up, heavy down, throw, leap-kick and retrieve.
 			{ combo[1], 0.12 }, { combo[2], 0.12 }, { combo[2], 0.2 },
@@ -282,7 +285,7 @@ SkillActionPose mixPose(const SkillActionPose& a, const SkillActionPose& b, floa
 		a.rootY + (b.rootY - a.rootY) * t,
 		a.forward + (b.forward - a.forward) * t,
 		a.heldSwordDirection + (b.heldSwordDirection - a.heldSwordDirection) * t,
-		a.heldSwordDirectionLock + (b.heldSwordDirectionLock - a.heldSwordDirectionLock) * t
+		a.heldSwordRotationY + (b.heldSwordRotationY - a.heldSwordRotationY) * t
 	};
 }
 
@@ -431,7 +434,7 @@ CharacterPose applyPose(const CharacterPose& base, const SkillActionPose& skillP
 	pose.torsoRotationY = base.torsoRotationY + skillPose.torsoRotationY;
 	pose.torsoRotationZ = base.torsoRotationZ + skillPose.torsoRotationZ;
 	pose.heldSwordDirection = skillPose.heldSwordDirection;
-	pose.heldSwordDirectionLock = std::clamp(skillPose.heldSwordDirectionLock, 0.0f, 1.0f);
+	pose.heldSwordRotationY = skillPose.heldSwordRotationY;
 	return pose;
 }
 
