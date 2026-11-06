@@ -78,7 +78,7 @@ const std::array<SkillActionPose, 7>& swordComboPoses() {
 		action(2.76f, 1.6f, 1.57f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.0f, 0.0f, 0.3f,0.0f,0.0f,-1.12f), // raise the elbow and bend the forearm 90 degrees to the character's right
 		action(0.5f, 0.0f, 0.0f, -0.7f, 0.7f, 0.0f, 0.0f, -0.3f, 0.0f, 1.0f, -0.05f,0.5f,0.0f,-1.8f), // swing horizontally to the right
 		action(-0.22f, 1.25f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.05f, -0.22f, 0.32f), // extend the sword arm backward
-		action(2.72f, 0.85f, 0.0f, 1.12f, -0.9f, -0.72f, -0.3f, -0.5f, 0.5f, -1.0f, -0.2f,-0.4f) // swing forward and upward
+		action(2.72f, 0.85f, 0.0f, 1.12f, -0.9f, -0.72f, -0.3f, -0.5f, 0.5f, -1.0f, -0.2f,-0.4f,0.0f,1.8f) // swing forward and upward
 	}};
 	return poses;
 }
@@ -331,7 +331,7 @@ double enemyHitTime(int skillIndex, int swordStage, double approachDuration) {
 // One held action pose replaces the procedural arm oscillation before the blade is thrown.
 const SkillActionPose& unsealedSwordPreThrowPose() {
 	static const SkillActionPose pose = action(
-		1.57f, -1.57f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.32f);
+		-0.22f, 1.45f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.05f, -0.22f, 0.32f);
 	return pose;
 }
 
@@ -405,7 +405,10 @@ SkillActionPose poseAt(int skillIndex, double elapsed, int swordStageAtStart, do
 			(elapsed - comboEnd) / swordPullbackTransitionSeconds, 0.0, 1.0));
 		return mixPose(comboPoses[6], unsealedSwordPreThrowPose(), t * t * (3.0f - 2.0f * t));
 	}
-	if (elapsed < preThrowHoldEnd) return unsealedSwordPreThrowPose();
+	if (elapsed < preThrowHoldEnd) {
+		const int holdStep = static_cast<int>(std::floor((elapsed - pullbackEnd) / 0.1));
+		return holdStep % 2 == 0 ? mixPose(comboPoses[5], unsealedSwordPreThrowPose(), 0.1f) : mixPose(unsealedSwordPreThrowPose(), comboPoses[5], 0.1f);
+	}
 	if (elapsed < releaseTime) {
 		const float t = static_cast<float>(std::clamp(
 			(elapsed - preThrowHoldEnd) / swordReleasePoseTransitionSeconds, 0.0, 1.0));
