@@ -298,6 +298,7 @@ double frameSequenceDuration(const std::vector<SkillFrame>& frames) {
 constexpr double swordPullbackTransitionSeconds = 0.35;
 constexpr double swordPreThrowHoldSeconds = 1.8;
 constexpr double swordReleasePoseTransitionSeconds = 0.25;
+constexpr double unsealedSwordRecoverySeconds = 0.35;
 constexpr double laevateinnSkill6HoldBeforeSlash = 2.0;
 constexpr double laevateinnSkill6PostSlashWait = 5.0;
 
@@ -414,7 +415,12 @@ SkillActionPose poseAt(int skillIndex, double elapsed, int swordStageAtStart, do
 			(elapsed - preThrowHoldEnd) / swordReleasePoseTransitionSeconds, 0.0, 1.0));
 		return mixPose(unsealedSwordPreThrowPose(), comboPoses[6], t * t * (3.0f - 2.0f * t));
 	}
-	return comboPoses[6];
+	const double recoveryStart = releaseTime
+		+ static_cast<double>(unsealedSwordFlightDistance / unsealedSwordForwardSpeed);
+	if (elapsed < recoveryStart) return comboPoses[6];
+	const float recoveryT = static_cast<float>(std::clamp(
+		(elapsed - recoveryStart) / unsealedSwordRecoverySeconds, 0.0, 1.0));
+	return mixPose(comboPoses[6], SkillActionPose{}, recoveryT * recoveryT * (3.0f - 2.0f * recoveryT));
 }
 
 CharacterPose applyPose(const CharacterPose& base, const SkillActionPose& skillPose) {
@@ -646,7 +652,9 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		if (unsealSkill) {
 			// Throw the previous stage's blade as the equipped sword advances one form.
 			app.swordStage = std::min(animation.swordStageAtStart + 1, 3);
-			animation.duration = swordReleaseTime + flightTime + 0.16;
+			const double recoveryDuration = animation.swordStageAtStart == 0
+				? 0.16 : unsealedSwordRecoverySeconds;
+			animation.duration = swordReleaseTime + flightTime + recoveryDuration;
 		}
 	}
 	else if (animation.swordThrown && animation.thrownSwordVisible) {
