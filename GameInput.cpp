@@ -186,7 +186,7 @@ void activateSkill(App& app, int skillIndex, double now) {
 		}
 		if (stageAtActivation == 3 && app.enemyModel.loaded() && (skillIndex == 2 || skillIndex == 5)) {
 			const glm::vec2 toEnemy(app.enemyPosition.x - app.characterPose.rootPosition.x,
-				app.enemyPosition.z - app.characterPose.rootPosition.z);
+				app.enemyPosition.z - app.characterPose.rootPosition.z - 0.6f);
 			const float distance = glm::length(toEnemy);
 			if (distance > 1e-4f) {
 				const glm::vec3 direction(toEnemy.x / distance, 0.0f, toEnemy.y / distance);
@@ -194,9 +194,9 @@ void activateSkill(App& app, int skillIndex, double now) {
 				app.characterPose.rootYaw = std::atan2(direction.x, direction.z);
 				if (skillIndex == 2) {
 					// Move during the kick toward the sword planted at the enemy, so the right foot can reach it.
-					app.skillAnimation.lungeDistance = std::max(0.0f, distance - 1.7f);
-					app.skillAnimation.lungeStart = LAEVATEINN_SKILL3_KICK_START;
-					app.skillAnimation.lungeDuration = 1.0;
+					app.skillAnimation.lungeDistance = std::max(0.0f, distance - 3.4f);
+					app.skillAnimation.lungeStart = laevateinnSkill3KickStartTime();
+					app.skillAnimation.lungeDuration = 0.2;
 					app.skillAnimation.enemyHitPending = true;
 				}
 				else {

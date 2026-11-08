@@ -64,7 +64,7 @@ void activateSkill(App& app, int skillIndex, double now) {
 			if (skillIndex == SkillId::VengeanceStamp) {
 				// Move during the kick toward the sword planted at the enemy, so the right foot can reach it.
 				app.skillAnimation.lungeDistance = std::max(0.0f, distance - 1.7f);
-				app.skillAnimation.lungeStart = LAEVATEINN_SKILL3_KICK_START;
+				app.skillAnimation.lungeStart = laevateinnSkill3KickStartTime();
 				app.skillAnimation.lungeDuration = 1.0;
 				app.skillAnimation.enemyHitPending = true;
 			}

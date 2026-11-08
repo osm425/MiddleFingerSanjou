@@ -25,6 +25,8 @@ struct SkillFrame {
 	double duration;
 	const wchar_t* voiceOnEnter = nullptr;
 	unsigned voiceCueBit = 0;
+	bool swordThrowOnEnter = false;
+	bool swordRetrievalOnEnter = false;
 };
 
 constexpr float unsealedSwordForwardSpeed = 20.0f;
@@ -168,24 +170,6 @@ const SkillActionPose& laevateinnsuperslashPose() {
 	return pose;
 }
 
-const SkillActionPose& laevateinnKickToSwordPose() {
-	static const SkillActionPose pose = action(0.12f, 0.62f, 0.0f, -0.12f, 2.35f,
-		-0.35f, -0.10f, 0.0f, 0.0f, 0.20f, -0.08f);
-	return pose;
-}
-
-const SkillActionPose& laevateinnKneeBendPose() {
-	static const SkillActionPose pose = action(0.24f, 0.76f, 0.0f, -0.12f, 1.95f,
-		-0.20f, -0.75f, 0.0f, 0.0f, 0.12f, 0.18f);
-	return pose;
-}
-
-const SkillActionPose& laevateinnSwordPullPose() {
-	static const SkillActionPose pose = action(-0.35f, -0.25f, 0.12f, 0.10f, 1.50f,
-		-0.15f, -0.85f, 0.0f, 0.0f, -0.30f, 0.10f);
-	return pose;
-}
-
 const SkillActionPose& laevateinnSkill6SlashPose() {
 	static const SkillActionPose pose = action(1.0f, 0.0f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, 1.4f, -0.05f, 0.5f);
 	return pose;
@@ -223,11 +207,12 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 			{ laevateinnSlashReadyPose(), 0.2 }, { combo[2], 0.5 },{ combo[3], 0.2 },
 			{ combo[4], 0.5}, { combo[6], 0.5 },
 			{ laevateinnsuperslashPose(), 0.2 }, { combo[4], 0.8 },
-			{ laevateinnsuperslashPose(), 0.5 }, { combo[4], 0.5 },
-			{ rightLegStompAndLeftKneel(), 1.0 },
-			{ laevateinnKickToSwordPose(), 1.0 }, { laevateinnKneeBendPose(), 2.0,
+			{ laevateinnsuperslashPose(), 0.5 }, { combo[4], 0.5, nullptr, 0, true }, // throw at this frame's start
+			{ rightLegStompAndLeftKneel(), 0.5 },
+			{ action(0.0f, 0.0f, 0.0f, 0.2f, 1.48f, -1.5f, 0.0f, 1.0f, 0.0f, 0.0f, -0.05f, 0.6f), 1.0 },
+			{ action(0.24f, 0.76f, 0.0f, 0.2f, 1.95f, -1.5f, -0.75f, 1.0f, 0.0f, 0.12f, 0.18f,0.6f), 2.0,
 				L"bulls_eye_1.wav", 0x2u },
-			{ laevateinnSwordPullPose(), 1.5 }
+			{ action(-0.35f, -0.25f, 0.12f, 0.10f, 1.50f, -0.15f, -0.85f, 0.0f, 0.0f, -0.30f, 0.10f), 1.5, nullptr, 0, false, true }
 		};
 		result[4] = { // 5. Downward strike, then a dashing horizontal cut.
 			{ laevateinnSlashReadyPose(), 0.12},{combo[2], 0.5, L"come_on_2.wav", 0x2u},{combo[3], 0.5},
@@ -277,6 +262,15 @@ double frameSequenceDuration(const std::vector<SkillFrame>& frames) {
 	double total = 0.0;
 	for (const SkillFrame& frame : frames) total += frame.duration;
 	return total;
+}
+
+double laevateinnSkill3FrameEventTime(bool SkillFrame::*eventFlag) {
+	double elapsed = 0.0;
+	for (const SkillFrame& frame : laevateinnSkillFrames()[2]) {
+		if (frame.*eventFlag) return elapsed;
+		elapsed += frame.duration;
+	}
+	return elapsed;
 }
 
 constexpr double swordPullbackTransitionSeconds = 0.35;
@@ -435,22 +429,9 @@ glm::vec3 transformPoint(const glm::mat4& transform, const glm::vec3& point) {
 	return glm::vec3(transform * glm::vec4(point, 1.0f));
 }
 
-glm::vec3 swordAxisAcrossEnemy(const App& app) {
-	glm::vec3 enemyForward;
-	if (app.enemyYawSet) {
-		enemyForward = glm::vec3(std::sin(app.enemyYaw), 0.0f, std::cos(app.enemyYaw));
-	}
-	else {
-		enemyForward = app.characterPose.rootPosition - app.enemyPosition;
-		enemyForward.y = 1.0f;
-	}
-	if (glm::length(enemyForward) < 1e-5f) enemyForward = glm::vec3(0.0f, 0.0f, 1.0f);
-	else enemyForward = glm::normalize(enemyForward);
-
-	const glm::vec3 acrossEnemy = glm::cross(glm::vec3(0.0f, 0.0f, 0.0f), enemyForward);
-	return glm::length(acrossEnemy) < 1e-5f
-		? glm::vec3(1.0f, 0.0f, 0.0f)
-		: glm::normalize(acrossEnemy);
+glm::vec3 swordPlantDirection(const App& app) {
+	return glm::normalize(glm::vec3(
+		std::sin(app.characterPose.rootYaw), 0.0f, std::cos(app.characterPose.rootYaw)));
 }
 glm::mat4 alignPositiveY(const glm::vec3& direction) {
 	const glm::vec3 source(0.0f, 1.0f, 0.0f);
@@ -460,6 +441,18 @@ glm::mat4 alignPositiveY(const glm::vec3& direction) {
 	if (cosine < -0.999999f) return glm::rotate(glm::mat4(1.0f), 3.14159265f, glm::vec3(1.0f, 0.0f, 0.0f));
 	return glm::rotate(glm::mat4(1.0f), std::acos(cosine), glm::normalize(glm::cross(source, target)));
 }
+}
+
+double laevateinnSkill3ThrowTime() {
+	return laevateinnSkill3FrameEventTime(&SkillFrame::swordThrowOnEnter);
+}
+
+double laevateinnSkill3KickStartTime() {
+	return laevateinnSkill3ThrowTime() + LAEVATEINN_SKILL3_FLIGHT_TIME;
+}
+
+double laevateinnSkill3RetrievalTime() {
+	return laevateinnSkill3FrameEventTime(&SkillFrame::swordRetrievalOnEnter);
 }
 
 double skillAnimationSeconds(int skillIndex, int swordStage) {
@@ -580,7 +573,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 	const bool unsealSkill = skillIndex == 5 && animation.swordStageAtStart >= 0
 		&& animation.swordStageAtStart <= 2;
 	const bool laevateinnThrowSkill = skillIndex == 2 && animation.swordStageAtStart == 3;
-	const double swordReleaseTime = laevateinnThrowSkill ? LAEVATEINN_SKILL3_THROW_TIME
+	const double swordReleaseTime = laevateinnThrowSkill ? laevateinnSkill3ThrowTime()
 		: (animation.swordStageAtStart == 0 ? 4.0 : unsealedSwordReleaseTime());
 	if ((unsealSkill || laevateinnThrowSkill) && !animation.swordThrown
 		&& previousElapsed < swordReleaseTime && animation.elapsed >= swordReleaseTime) {
@@ -656,9 +649,9 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		if (animation.swordStageAtStart == 3 && skillIndex == 2) {
 			if (animation.thrownSwordElapsed >= animation.thrownSwordFlightDuration) {
 				animation.thrownSwordPlanted = true;
-				animation.thrownSwordDirection = swordAxisAcrossEnemy(app);
+				animation.thrownSwordDirection = swordPlantDirection(app);
 			}
-			if (animation.elapsed >= LAEVATEINN_SKILL3_RETRIEVAL_TIME) animation.thrownSwordVisible = false;
+			if (animation.elapsed >= laevateinnSkill3RetrievalTime()) animation.thrownSwordVisible = false;
 		}
 		else if (animation.thrownSwordStage == 0) {
 			if (position.y <= FIELD_Y + 1.35f) animation.thrownSwordVisible = false;
@@ -673,7 +666,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 glm::mat4 thrownSkillSwordTransform(const App& app) {
 	const SkillAnimationState& animation = app.skillAnimation;
 	if (animation.thrownSwordPlanted) {
-		// The blade axis lies horizontally across the enemy's facing direction.
+		// The blade axis lies horizontally in the direction the character is facing.
 		const glm::mat4 horizontal = alignPositiveY(animation.thrownSwordDirection);
 		return glm::translate(glm::mat4(1.0f), animation.thrownSwordTarget) * horizontal;
 	}
