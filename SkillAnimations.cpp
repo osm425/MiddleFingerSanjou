@@ -133,14 +133,18 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 }
 
 const SkillActionPose& laevateinnReadyPose() {
-	static const SkillActionPose pose = action(-0.28f, 0.72f, 0.12f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.12f, -0.08f);
+	static const SkillActionPose pose = action(0.0f, -0.0f, 0.0f, 0.20f, 1.20f, -1.20f, -1.20f, -0.6f, 0.0f, 0.0f, 0.18f, 0.2f,0.0f, 1.12f,glm::vec3(0.0f,0.0f,1.0f));
+	return pose;
+}
+
+const SkillActionPose& laevateinnSlashReadyPose() {
+	static const SkillActionPose pose = action(2.48f,-0.5f,0.2f,-0.6f,0.8f,0.0f,0.0f,0.0f,0.0f, 0.0f,0.0f,0.0f,0.0f, -1.12f,glm::vec3(0.0f,0.0f,-1.0f));
 	return pose;
 }
 
 const SkillActionPose& laevateinnHighKickPose() {
 	static const SkillActionPose pose = action(0.18f, 0.58f, 0.0f, -0.08f, 2.22f,
-		-0.55f, 0.0f, 0.0f, 0.0f, 0.16f, -0.06f);
+		-0.55f, 0.0f, 0.0f, 0.0f, 0.16f, -0.06f,0.0f, 0.0f, 1.12f,glm::vec3(0.0f,-0.5f,1.0f));
 	return pose;
 }
 
@@ -210,7 +214,7 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 		std::array<std::vector<SkillFrame>, 6> result{};
 		result[0] = { // 1. Lower, high kick, raise the sword, dash and cut down.
 			{ laevateinnReadyPose(), 0.2 }, { laevateinnHighKickPose(), 1.0 },
-			{ combo[1], 0.4 }, { combo[2], 0.45 }
+			{ laevateinnSlashReadyPose(), 0.4},{combo[2], 0.45}
 		};
 		result[1] = { // 2. Two high kicks, one vertical kick, then two three-stab batches and retreat.
 			{ rightLegTuckedFootDown(), 0.1 }, { laevateinnHighKickPose(), 0.1 },
