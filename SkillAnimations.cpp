@@ -149,26 +149,23 @@ const SkillActionPose& laevateinnHighKickPose() {
 }
 
 const SkillActionPose& laevateinnVerticalKickPose() {
-	static const SkillActionPose pose = action(0.24f, 0.54f, 0.0f, 0.0f, 2.50f,
-		0.0f, -1.0f, 0.0f, 0.0f, 0.12f, -0.04f);
+	static const SkillActionPose pose = action(0.24f, 0.54f, 0.0f, 0.12f, 1.57f, -0.80f, 0.0f, 0.0f, 0.0f, 0.12f, -0.04f, 0.0f, 0.0f, 1.12f, glm::vec3(0.0f, -0.5f, 1.0f));
+	return pose;
+}
+//---
+const SkillActionPose& laevateinnHorizontalSlashPose() {
+	static const SkillActionPose pose = action(0.0f, 1.0f, 0.1f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, 0.0f, -0.88f, 0.18f, 0.4f, 0.0f, 1.12f, glm::vec3(0.0f,0.0f,1.0f));
 	return pose;
 }
 
-const SkillActionPose& laevateinnHorizontalSlashPose() {
-	static const SkillActionPose pose = action(-1.0f, 0.32f, 0.30f, -0.18f, 0.26f,
-		0.0f, 0.10f, 0.0f, 0.0f, -0.88f, 0.18f);
+const SkillActionPose& laevateinnStabPose() {
+	static const SkillActionPose pose = action(0.5f,0.0f,0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, 0.12f, -1.0f, 0.10f,-0.4f, 0.0f, 1.12f, glm::vec3(0.0f, 0.0f, 1.0f));
 	return pose;
 }
 
 const SkillActionPose& laevateinnUpSlashPose() {
 	static const SkillActionPose pose = action(1.68f, 0.62f, 0.10f, -0.14f, 0.24f,
 		-0.15f, 0.12f, 0.0f, 0.0f, 0.42f, 0.12f);
-	return pose;
-}
-
-const SkillActionPose& laevateinnStabPose() {
-	static const SkillActionPose pose = action(-0.76f, -0.58f, 0.26f, -0.08f, 0.16f,
-		-0.12f, 0.08f, 0.0f, 0.12f, 0.0f, 0.10f);
 	return pose;
 }
 
@@ -217,24 +214,22 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 			{ laevateinnSlashReadyPose(), 0.4},{combo[2], 0.45}
 		};
 		result[1] = { // 2. Two high kicks, one vertical kick, then two three-stab batches and retreat.
-			{ rightLegTuckedFootDown(), 0.1 }, { laevateinnHighKickPose(), 0.1 },
-			{ rightLegTuckedFootDown(), 0.1 }, { laevateinnHighKickPose(), 0.1 },
-			{ rightLegTuckedFootDown(), 0.1 }, { laevateinnVerticalKickPose(), 0.1 },
-			{ SkillActionPose{}, 0.1 }
+			{ laevateinnReadyPose(), 0.1 }, { laevateinnHighKickPose(), 0.1 },
+			{ laevateinnReadyPose(), 0.1 }, { laevateinnHighKickPose(), 0.1 },
+			{ laevateinnReadyPose(), 0.1 }, { laevateinnVerticalKickPose(), 0.3 },
+
 		};
+		result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1 });
+		result[1].push_back({ laevateinnStabPose(), 0.5, L"is_hot_1.wav", 0x2u });
 		for (int batch = 0; batch < 2; ++batch) {
-			result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1 }); // skill2_7
-			result[1].push_back({ laevateinnStabPose(), 0.1 }); // skill2_15
-			result[1].push_back({ laevateinnStabPose(), 0.2, batch == 0 ? L"is_hot_1.wav" : nullptr,
-				batch == 0 ? 0x2u : 0u }); // plant the sword
 			for (int stab = 0; stab < 3; ++stab) {
 				result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1 });
 				result[1].push_back({ laevateinnStabPose(), 0.1 });
 			}
-			result[1].push_back({ SkillActionPose{}, 0.2 });
+			result[1].push_back({ laevateinnStabPose(), 0.3 });
 		}
-		result[1].push_back({ action(1.20f, 0.78f, 0.0f, 0.0f, 0.1f, 0.0f, 0.0f,
-			0.0f, -0.30f, 0.10f, -0.05f), 0.25, L"is_hot_2.wav", 0x4u }); // withdraw with the sword
+		result[1].push_back({ laevateinnStabPose(), 0.2 , L"is_hot_2.wav", 0x4u });
+		result[1].push_back({ action(1.0f, 0.0f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, 1.4f, -0.05f,0.5f), 1.5 }); // withdraw with the sword
 
 
 
@@ -250,8 +245,8 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 			{ laevateinnSwordPullPose(), 2.0 }
 		};
 		result[4] = { // 5. Downward strike, then a dashing horizontal cut.
-			{ combo[1], 0.12 }, { combo[2], 0.12, L"come_on_2.wav", 0x2u }, { combo[2], 0.5 },
-			{ laevateinnHorizontalSlashPose(), 0.6 }
+			{ laevateinnSlashReadyPose(), 0.12},{combo[2], 0.5, L"come_on_2.wav", 0x2u},{combo[3], 0.5},
+			{ combo[4], 0.6}
 		};
 		return result;
 	}();
