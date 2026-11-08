@@ -46,27 +46,27 @@ SkillActionPose action(float armLift = 0.0f, float armReach = 0.0f, float elbowB
 
 // Shared leg poses keep the repeated kick sequences consistent across skills.
 const SkillActionPose& rightLegRaisedToFace() {
-	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, 0.0f, 2.50f, 0.0f, -1.00f, 0.0f, 0.0f, 0.0f, -0.1f, 0.2f);
+	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, 0.0f, 2.50f, 0.0f, -1.00f, 0.0f, 0.0f, 0.0f, -0.1f, 0.2f);
 	return pose;
 }
 
 const SkillActionPose& rightLegStompAndLeftKneel() {
-	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, 0.20f, 1.20f, -1.20f, -1.20f, -0.6f, 0.0f, 0.0f, 0.18f,0.2f);
+	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, 0.20f, 1.20f, -1.20f, -1.20f, -0.6f, 0.0f, 0.0f, 0.18f,0.2f);
 	return pose;
 }
 
 const SkillActionPose& rightLegTuckedFootDown() {
-	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, 0.0f, 1.40f, 0.0f, -1.40f);
+	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, 0.0f, 1.40f, 0.0f, -1.40f);
 	return pose;
 }
 
 const SkillActionPose& rightLegExtendedKick() {
-	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, -0.08f, 2.22f, -0.55f, 0.0f, 0.0f, 0.0f, 0.0f, -0.06f,0.3f,-0.5f);
+	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, -0.08f, 2.22f, -0.55f, 0.0f, 0.0f, 0.0f, 0.0f, -0.06f,0.3f,-0.5f);
 	return pose;
 }
 
 const SkillActionPose& rightLegHorizontal() {
-	static const SkillActionPose pose = action(0.0f, 0.0f, 0.0f, 0.12f, 1.57f, -0.80f, 0.0f, 0.0f, 0.0f, 0.0f, -0.03f,0.3f,-0.2f);
+	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, 0.12f, 1.57f, -0.80f, 0.0f, 0.0f, 0.0f, 0.0f, -0.03f,0.3f,-0.2f);
 	return pose;
 }
 
