@@ -163,15 +163,8 @@ const SkillActionPose& laevateinnStabPose() {
 	return pose;
 }
 
-const SkillActionPose& laevateinnUpSlashPose() {
-	static const SkillActionPose pose = action(1.68f, 0.62f, 0.10f, -0.14f, 0.24f,
-		-0.15f, 0.12f, 0.0f, 0.0f, 0.42f, 0.12f);
-	return pose;
-}
-
-const SkillActionPose& laevateinnJumpPrepPose() {
-	static const SkillActionPose pose = action(-0.08f, 1.05f, 0.12f, -0.20f, 0.38f,
-		-0.30f, 0.10f, 0.18f, 0.0f, 0.15f, -0.12f);
+const SkillActionPose& laevateinnsuperslashPose() {
+	static const SkillActionPose pose = action(2.72f, 0.85f, 0.0f, 1.12f, -0.9f, -0.72f, -0.3f, -0.5f, 0.5f, -1.0f, -0.2f, -0.4f, 0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f));
 	return pose;
 }
 
@@ -193,15 +186,8 @@ const SkillActionPose& laevateinnSwordPullPose() {
 	return pose;
 }
 
-const SkillActionPose& laevateinnSkill6WindupPose() {
-	static const SkillActionPose pose = action(2.35f, -0.28f, -0.10f, -0.06f, 0.12f,
-		0.0f, 0.05f, 0.0f, 0.0f, 0.34f, 0.18f);
-	return pose;
-}
-
 const SkillActionPose& laevateinnSkill6SlashPose() {
-	static const SkillActionPose pose = action(-1.12f, 0.76f, 0.20f, -0.18f, 0.22f,
-		0.0f, 0.08f, 0.0f, 0.0f, -1.05f, 0.22f);
+	static const SkillActionPose pose = action(1.0f, 0.0f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, 1.4f, -0.05f, 0.5f);
 	return pose;
 }
 
@@ -229,20 +215,19 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 			result[1].push_back({ laevateinnStabPose(), 0.3 });
 		}
 		result[1].push_back({ laevateinnStabPose(), 0.2 , L"is_hot_2.wav", 0x4u });
-		result[1].push_back({ action(1.0f, 0.0f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, 1.4f, -0.05f,0.5f), 1.5 }); // withdraw with the sword
+		result[1].push_back({ laevateinnSkill6SlashPose(), 1.5}); // withdraw with the sword
 
 
 
 		result[2] = { // 3. Down, right-to-left, up, heavy down, throw, leap-kick and retrieve.
-			{ combo[1], 0.12 }, { combo[2], 0.12 }, { combo[2], 0.2 },
-			{ laevateinnHorizontalSlashPose(), 0.12 }, { laevateinnHorizontalSlashPose(), 0.3 },
-			{ laevateinnUpSlashPose(), 0.12 }, { laevateinnUpSlashPose(), 0.3 },
-			{ combo[1], 0.12 }, { swordThrowPose(), 0.12 }, { combo[2], 0.12 }, { combo[2], 0.4 },
-			{ swordThrowPose(), 0.12 }, { laevateinnHorizontalSlashPose(), 0.12 },
-			{ laevateinnJumpPrepPose(), 1.0 },
-			{ laevateinnKickToSwordPose(), 1.0 }, { laevateinnKneeBendPose(), 1.2,
+			{ laevateinnSlashReadyPose(), 0.2 }, { combo[2], 0.5 },{ combo[3], 0.2 },
+			{ combo[4], 0.5}, { combo[6], 0.5 },
+			{ laevateinnsuperslashPose(), 0.2 }, { combo[4], 0.8 },
+			{ laevateinnsuperslashPose(), 0.5 }, { combo[4], 0.5 },
+			{ rightLegStompAndLeftKneel(), 1.0 },
+			{ laevateinnKickToSwordPose(), 1.0 }, { laevateinnKneeBendPose(), 2.0,
 				L"bulls_eye_1.wav", 0x2u },
-			{ laevateinnSwordPullPose(), 2.0 }
+			{ laevateinnSwordPullPose(), 1.5 }
 		};
 		result[4] = { // 5. Downward strike, then a dashing horizontal cut.
 			{ laevateinnSlashReadyPose(), 0.12},{combo[2], 0.5, L"come_on_2.wav", 0x2u},{combo[3], 0.5},
@@ -369,12 +354,12 @@ SkillActionPose laevateinnSkill6Pose(double elapsed, double approachDuration) {
 	}
 	if (elapsed < approachDuration + 0.25) {
 		const float t = static_cast<float>(std::clamp((elapsed - approachDuration) / 0.25, 0.0, 1.0));
-		return mixPose(walkPose, laevateinnSkill6WindupPose(), t * t * (3.0f - 2.0f * t));
+		return mixPose(walkPose, laevateinnsuperslashPose(), t * t * (3.0f - 2.0f * t));
 	}
-	if (elapsed < slashTime) return laevateinnSkill6WindupPose();
+	if (elapsed < slashTime) return laevateinnsuperslashPose();
 	if (elapsed < slashTime + 0.3) {
 		const float t = static_cast<float>(std::clamp((elapsed - slashTime) / 0.3, 0.0, 1.0));
-		return mixPose(laevateinnSkill6WindupPose(), laevateinnSkill6SlashPose(), t * t * (3.0f - 2.0f * t));
+		return mixPose(laevateinnsuperslashPose(), laevateinnSkill6SlashPose(), t * t * (3.0f - 2.0f * t));
 	}
 	if (elapsed < slashTime + 0.6) {
 		const float t = static_cast<float>(std::clamp((elapsed - slashTime - 0.3) / 0.3, 0.0, 1.0));

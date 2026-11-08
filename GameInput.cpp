@@ -23,7 +23,7 @@ bool skillAvailableForStage(int swordStage, int skillIndex) {
 
 double skillCooldownSeconds(int swordStage, int skillIndex) {
 	static constexpr std::array<double, 6> sealedSwordCooldowns = { 4.0, 6.0, 8.0, 3.0, 5.0, 10.0 };
-	static constexpr std::array<double, 6> laevateinnCooldowns = { 4.0, 8.0, 10.0, 0.0, 5.0, 16.0 };
+	static constexpr std::array<double, 6> laevateinnCooldowns = { 4.0, 8.0, 15.0, 0.0, 5.0, 16.0 };
 	if (skillIndex < 0 || skillIndex >= static_cast<int>(sealedSwordCooldowns.size())) return SKILL_COOLDOWN_SECONDS;
 	if (swordStage >= 0 && swordStage <= 2) {
 		return sealedSwordCooldowns[skillIndex];
