@@ -212,7 +212,7 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 			{ action(0.0f, 0.0f, 0.0f, 0.2f, 1.48f, -1.5f, 0.0f, 1.0f, 0.0f, 0.0f, -0.05f, 0.6f), 1.0 },
 			{ action(0.24f, 0.76f, 0.0f, 0.2f, 1.95f, -1.5f, -0.75f, 1.0f, 0.0f, 0.12f, 0.18f,0.6f), 2.0,
 				L"bulls_eye_1.wav", 0x2u },
-			{ action(-0.35f, -0.25f, 0.12f, 0.10f, 1.50f, -0.15f, -0.85f, 0.0f, 0.0f, -0.30f, 0.10f), 1.5, nullptr, 0, false, true }
+			{ action(2.72f, 0.85f, 0.0f, 0.0f, -0.3f, 0.0f, -1.2f, 0.0f, 0.0f, -1.0f,0.1f,-0.4f,0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f)), 1.5, nullptr, 0, false, true }
 		};
 		result[4] = { // 5. Downward strike, then a dashing horizontal cut.
 			{ laevateinnSlashReadyPose(), 0.12},{combo[2], 0.5, L"come_on_2.wav", 0x2u},{combo[3], 0.5},
@@ -351,15 +351,13 @@ SkillActionPose laevateinnSkill6Pose(double elapsed, double approachDuration) {
 		return mixPose(walkPose, laevateinnsuperslashPose(), t * t * (3.0f - 2.0f * t));
 	}
 	if (elapsed < slashTime) return laevateinnsuperslashPose();
+
+	
 	if (elapsed < slashTime + 0.3) {
 		const float t = static_cast<float>(std::clamp((elapsed - slashTime) / 0.3, 0.0, 1.0));
 		return mixPose(laevateinnsuperslashPose(), laevateinnSkill6SlashPose(), t * t * (3.0f - 2.0f * t));
 	}
-	if (elapsed < slashTime + 0.6) {
-		const float t = static_cast<float>(std::clamp((elapsed - slashTime - 0.3) / 0.3, 0.0, 1.0));
-		return mixPose(laevateinnSkill6SlashPose(), SkillActionPose{}, t * t * (3.0f - 2.0f * t));
-	}
-	return {};
+	return laevateinnSkill6SlashPose();
 }
 
 SkillActionPose poseAt(int skillIndex, double elapsed, int swordStageAtStart, double approachDuration) {
