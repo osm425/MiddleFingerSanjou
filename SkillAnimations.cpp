@@ -110,9 +110,8 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 			{ rightLegHorizontal(), 0.5 },
 			{ rightLegStompAndLeftKneel(), 0.2, L"bored_to_play_2.wav", 0x2u },
 			{ action(0.0f, 0.0f, 0.0f, -0.35f, 1.48f, -0.85f, 0.0f, 3.0f, 0.0f, 0.0f, -0.05f,0.4f), 0.8 },
-			{ action(0.0f, 0.0f, 0.0f, -0.30f, 1.78f, -0.55f, 0.0f, 3.0f, 0.0f, 0.0f, -0.03f,0.4f), 0.1,
-				L"bored_to_play_3.wav", 0x4u },
-			{ rightLegStompAndLeftKneel(), 1.0 }
+			{ action(0.0f, 0.0f, 0.0f, -0.30f, 1.78f, -0.55f, 0.0f, 3.0f, 0.0f, 0.0f, -0.03f,0.4f), 0.1 },
+			{ rightLegStompAndLeftKneel(), 1.0 , L"bored_to_play_3.wav", 0x4u }
 		},
 		{ // 4. Reuse tuck / kick / tuck / horizontal kick poses
 			{ rightLegTuckedFootDown(), 0.2 },
@@ -352,12 +351,17 @@ SkillActionPose laevateinnSkill6Pose(double elapsed, double approachDuration) {
 	}
 	if (elapsed < slashTime) return laevateinnsuperslashPose();
 
+	if (elapsed < slashTime + 0.1) {
+		const float t = static_cast<float>(std::clamp((elapsed - slashTime) / 0.1, 0.0, 1.0));
+		return mixPose(laevateinnsuperslashPose(), action(0.5f, -0.5f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, -1.4f, -0.05f, 0.1f), t * t * (3.0f - 2.0f * t));
+	}
 	
 	if (elapsed < slashTime + 0.3) {
 		const float t = static_cast<float>(std::clamp((elapsed - slashTime) / 0.3, 0.0, 1.0));
-		return mixPose(laevateinnsuperslashPose(), laevateinnSkill6SlashPose(), t * t * (3.0f - 2.0f * t));
+		return mixPose(action(0.5f, -0.5f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, -1.4f, -0.05f, 0.1f), laevateinnSkill6SlashPose(), t * t * (3.0f - 2.0f * t));
 	}
-	return laevateinnSkill6SlashPose();
+	const float t = static_cast<float>(std::clamp((elapsed - slashTime - 4.8) / 1.0, 0.0, 1.0));
+	return mixPose(laevateinnSkill6SlashPose(), SkillActionPose{}, t * t * (3.0f - 2.0f * t));
 }
 
 SkillActionPose poseAt(int skillIndex, double elapsed, int swordStageAtStart, double approachDuration) {
