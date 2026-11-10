@@ -625,6 +625,11 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 	if (animation.swordStageAtStart == 3 && skillIndex == 0) {
 		applyDash(1.6, 0.45, 6.0f);
 	}
+	else if (animation.swordStageAtStart == 3 && skillIndex == 2) {
+		const double retrievalStart = laevateinnSkill3RetrievalTime();
+		const double retrievalDuration = laevateinnSkillFrames()[2].back().duration;
+		applyDash(retrievalStart, (retrievalDuration)/2, 10.0f);
+	}
 	else if (animation.swordStageAtStart == 3 && skillIndex == 4) {
 		applyDash(LAEVATEINN_SKILL5_DASH_START, 0.6, 6.0f);
 	}
