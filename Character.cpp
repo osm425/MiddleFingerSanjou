@@ -177,7 +177,7 @@ void drawMainScreen(App& app, double now) {
 				+ glm::vec3(0.0f, -0.4f, -0.4f);
 			const float runBlend = std::clamp(app.runAnimationBlend, 0.0f, 1.0f);
 			const float capeFlutter = std::sin(app.runAnimationPhase * 2.0f) * 0.035f;
-			const float capeTiltBack = runBlend * (0.12f + capeFlutter);
+			const float capeTiltBack = runBlend * (0.12f + capeFlutter) + pose.capeRotationX;
 			const glm::vec3 capePivot = app.coat.upperOriginAnchor();
 			const glm::mat4 coatTransform = torsoTransform
 				* glm::translate(glm::mat4(1.0f), coatOffset + capePivot)

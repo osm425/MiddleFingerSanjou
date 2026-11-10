@@ -18,6 +18,7 @@ struct SkillActionPose {
 	float forward = 0.0f;
 	glm::vec3 heldSwordDirection{ 0.0f };
 	float heldSwordRotationY = 0.0f;
+	float capeRotationX = 0.0f;
 };
 
 struct SkillFrame {
@@ -39,11 +40,12 @@ SkillActionPose action(float armLift = 0.0f, float armReach = 0.0f, float elbowB
 	float armYaw = 0.0f, float torsoRotationX = 0.0f,
 	float torsoRotationY = 0.0f, float torsoRotationZ = 0.0f,
 	float heldSwordRotationY = 0.0f,
-	glm::vec3 heldSwordDirection = glm::vec3(0.0f)
+	glm::vec3 heldSwordDirection = glm::vec3(0.0f),
+	float capeRotationX = 0.0f
 	) {
 	return { armLift, armReach, elbowBend, armYaw, torsoRotationX, torsoRotationY, torsoRotationZ,
 		leftLegPitch, rightLegPitch, leftKneeFlex, rightKneeFlex, rootY, forward,
-		heldSwordDirection, heldSwordRotationY };
+		heldSwordDirection, heldSwordRotationY, capeRotationX };
 }
 
 // Shared leg poses keep the repeated kick sequences consistent across skills.
@@ -53,7 +55,7 @@ const SkillActionPose& rightLegRaisedToFace() {
 }
 
 const SkillActionPose& rightLegStompAndLeftKneel() {
-	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, 0.20f, 1.20f, -1.20f, -1.20f, -0.6f, 0.0f, 0.0f, 0.18f,0.2f);
+	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, 0.20f, 1.20f, -1.20f, -1.20f, -0.6f, 0.0f, 0.0f, 0.18f,0.2f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),0.5f);
 	return pose;
 }
 
@@ -63,24 +65,24 @@ const SkillActionPose& rightLegTuckedFootDown() {
 }
 
 const SkillActionPose& rightLegExtendedKick() {
-	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, -0.08f, 2.22f, -0.55f, 0.0f, 0.0f, 0.0f, 0.0f, -0.06f,0.3f,-0.5f);
+	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, -0.08f, 2.22f, -0.55f, 0.0f, 0.0f, 0.0f, 0.0f, -0.06f,0.3f,-0.5f,0.0f,glm::vec3(0.0f,0.0f,0.0f), 1.0f);
 	return pose;
 }
 
 const SkillActionPose& rightLegHorizontal() {
-	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, 0.12f, 1.57f, -0.80f, 0.0f, 0.0f, 0.0f, 0.0f, -0.03f,0.3f,-0.2f);
+	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, 0.12f, 1.57f, -0.80f, 0.0f, 0.0f, 0.0f, 0.0f, -0.03f,0.3f,-0.2f,0.0f,glm::vec3(0.0f,0.0f,0.0f), 1.2f);
 	return pose;
 }
 
 const std::array<SkillActionPose, 7>& swordComboPoses() {
 	static const std::array<SkillActionPose, 7> poses = { {
 		action(2.0f, -0.8f, 1.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.04f,0.0f,0.0f), // bend the arm back so the hand reaches the sword grip on the back
-		action(0.0f, -3.60f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.3f, 0.0f, 0.0f, -0.1f), // extend the sword arm upward with a slight -X sweep
-		action(0.8f, 0.0f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.0f, -1.50f, 0.6f,0.0f,0.0f, -1.12f,glm::vec3(0.0f,1.0f,1.0f)), // swing the sword down in front
-		action(2.76f, 1.6f, 1.57f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.0f, 0.0f, 0.3f,0.0f,0.0f,-1.12f), // raise the elbow and bend the forearm 90 degrees to the character's right
-		action(0.5f, 0.0f, 0.0f, -0.7f, 0.7f, 0.0f, 0.0f, -0.3f, 0.0f, 1.0f, -0.05f,0.5f,0.0f,-1.8f), // swing horizontally to the right
-		action(-0.22f, 1.25f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.05f, -0.22f, 0.32f), // extend the sword arm backward
-		action(2.72f, 0.85f, 0.0f, 1.12f, -0.9f, -0.72f, -0.3f, -0.5f, 0.5f, -1.0f, -0.2f,-0.4f,0.0f,1.8f) // swing forward and upward
+		action(0.0f, -3.60f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.3f, 0.0f, 0.0f, -0.1f,0.0f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),0.3f), // extend the sword arm upward with a slight -X sweep
+		action(0.8f, 0.0f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.0f, -1.50f, 0.6f,0.0f,0.0f, -1.12f,glm::vec3(0.0f,1.0f,1.0f),1.0f), // swing the sword down in front
+		action(2.76f, 1.6f, 1.57f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.0f, 0.0f, 0.3f,0.0f,0.0f,-1.12f,glm::vec3(0.0f,0.0f,0.0f),0.3f), // raise the elbow and bend the forearm 90 degrees to the character's right
+		action(0.5f, 0.0f, 0.0f, -0.7f, 0.7f, 0.0f, 0.0f, -0.3f, 0.0f, 1.0f, -0.05f,0.5f,0.0f,-1.8f,glm::vec3(0.0f,0.0f,0.0f),1.0f), // swing horizontally to the right
+		action(-0.22f, 1.25f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.05f, -0.22f, 0.32f,0.0f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),1.0f), // extend the sword arm backward
+		action(2.72f, 0.85f, 0.0f, 1.12f, -0.9f, -0.72f, -0.3f, -0.5f, 0.5f, -1.0f, -0.2f,-0.4f,0.0f,1.8f,glm::vec3(0.0f,0.0f,0.0f),0.6f) // swing forward and upward
 	}};
 	return poses;
 }
@@ -109,8 +111,8 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 			{ rightLegTuckedFootDown(), 0.1 },
 			{ rightLegHorizontal(), 0.5 },
 			{ rightLegStompAndLeftKneel(), 0.2, L"bored_to_play_2.wav", 0x2u },
-			{ action(0.0f, 0.0f, 0.0f, -0.35f, 1.48f, -0.85f, 0.0f, 3.0f, 0.0f, 0.0f, -0.05f,0.4f), 0.8 },
-			{ action(0.0f, 0.0f, 0.0f, -0.30f, 1.78f, -0.55f, 0.0f, 3.0f, 0.0f, 0.0f, -0.03f,0.4f), 0.1 },
+			{ action(0.5f, -1.0f, -1.6f, -0.35f, 1.48f, -0.85f, 0.0f, 3.0f, 0.0f, 0.0f, -0.05f,0.4f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),1.2f), 0.8 },
+			{ action(0.5f, -1.0f, -1.6f, -0.30f, 1.78f, -0.55f, 0.0f, 3.0f, 0.0f, 0.0f, -0.03f,0.4f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),1.2f), 0.1 },
 			{ rightLegStompAndLeftKneel(), 1.0 , L"bored_to_play_3.wav", 0x4u }
 		},
 		{ // 4. Reuse tuck / kick / tuck / horizontal kick poses
@@ -134,43 +136,43 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 }
 
 const SkillActionPose& laevateinnReadyPose() {
-	static const SkillActionPose pose = action(0.0f, -0.0f, 0.0f, 0.20f, 1.20f, -1.20f, -1.20f, -0.6f, 0.0f, 0.0f, 0.18f, 0.2f,0.0f, 1.12f,glm::vec3(0.0f,0.0f,1.0f));
+	static const SkillActionPose pose = action(0.0f, -0.0f, 0.0f, 0.20f, 1.20f, -1.20f, -1.20f, -0.6f, 0.0f, 0.0f, 0.18f, 0.2f,0.0f, 1.12f,glm::vec3(0.0f,0.0f,1.0f),0.4f);
 	return pose;
 }
 
 const SkillActionPose& laevateinnSlashReadyPose() {
-	static const SkillActionPose pose = action(2.48f,-0.5f,0.2f,-0.6f,0.8f,0.0f,0.0f,0.0f,0.0f, 0.0f,0.0f,0.0f,0.0f, -1.12f,glm::vec3(0.0f,0.0f,-1.0f));
+	static const SkillActionPose pose = action(2.48f,-0.5f,0.2f,-0.6f,0.8f,0.0f,0.0f,0.0f,0.0f, 0.0f,0.0f,0.0f,0.0f, -1.12f,glm::vec3(0.0f,0.0f,-1.0f),0.6f);
 	return pose;
 }
 
 const SkillActionPose& laevateinnHighKickPose() {
 	static const SkillActionPose pose = action(0.18f, 0.58f, 0.0f, -0.08f, 2.22f,
-		-0.55f, 0.0f, 0.0f, 0.0f, 0.16f, -0.06f,0.0f, 0.0f, 1.12f,glm::vec3(0.0f,-0.5f,1.0f));
+		-0.55f, 0.0f, 0.0f, 0.0f, 0.16f, -0.06f,0.0f, 0.0f, 1.12f,glm::vec3(0.0f,-0.5f,1.0f),1.0f);
 	return pose;
 }
 
 const SkillActionPose& laevateinnVerticalKickPose() {
-	static const SkillActionPose pose = action(0.24f, 0.54f, 0.0f, 0.12f, 1.57f, -0.80f, 0.0f, 0.0f, 0.0f, 0.12f, -0.04f, 0.0f, 0.0f, 1.12f, glm::vec3(0.0f, -0.5f, 1.0f));
+	static const SkillActionPose pose = action(0.24f, 0.54f, 0.0f, 0.12f, 1.57f, -0.80f, 0.0f, 0.0f, 0.0f, 0.12f, -0.04f, 0.0f, 0.0f, 1.12f, glm::vec3(0.0f, -0.5f, 1.0f),1.2f);
 	return pose;
 }
 //---
 const SkillActionPose& laevateinnHorizontalSlashPose() {
-	static const SkillActionPose pose = action(0.0f, 1.0f, 0.1f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, 0.0f, -0.88f, 0.18f, 0.4f, 0.0f, 1.12f, glm::vec3(0.0f,0.0f,1.0f));
+	static const SkillActionPose pose = action(0.0f, 1.0f, 0.1f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, 0.0f, -0.88f, 0.18f, 0.4f, 0.0f, 1.12f, glm::vec3(0.0f,0.0f,1.0f),0.2f);
 	return pose;
 }
 
 const SkillActionPose& laevateinnStabPose() {
-	static const SkillActionPose pose = action(0.5f,0.0f,0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, 0.12f, -1.0f, 0.10f,-0.4f, 0.0f, 1.12f, glm::vec3(0.0f, 0.0f, 1.0f));
+	static const SkillActionPose pose = action(0.5f,0.0f,0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, 0.12f, -1.0f, 0.10f,-0.4f, 0.0f, 1.12f, glm::vec3(0.0f, 0.0f, 1.0f),0.2f);
 	return pose;
 }
 
 const SkillActionPose& laevateinnsuperslashPose() {
-	static const SkillActionPose pose = action(2.72f, 0.85f, 0.0f, 1.12f, -0.9f, -0.72f, -0.3f, -0.5f, 0.5f, -1.0f, -0.2f, -0.4f, 0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f));
+	static const SkillActionPose pose = action(2.72f, 0.85f, 0.0f, 1.12f, -0.9f, -0.72f, -0.3f, -0.5f, 0.5f, -1.0f, -0.2f, -0.4f, 0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f),0.6f);
 	return pose;
 }
 
 const SkillActionPose& laevateinnSkill6SlashPose() {
-	static const SkillActionPose pose = action(1.0f, 0.0f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, 1.4f, -0.05f, 0.5f);
+	static const SkillActionPose pose = action(1.0f, 0.0f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, 1.4f, -0.05f, 0.5f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.0f);
 	return pose;
 }
 
@@ -208,10 +210,10 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 			{ laevateinnsuperslashPose(), 0.2 }, { combo[4], 0.8 },
 			{ laevateinnsuperslashPose(), 0.5 }, { combo[4], 0.5, nullptr, 0, true }, // throw at this frame's start
 			{ rightLegStompAndLeftKneel(), 0.5 },
-			{ action(0.0f, 0.0f, 0.0f, 0.2f, 1.48f, -1.5f, 0.0f, 1.0f, 0.0f, 0.0f, -0.05f, 0.6f), 1.0 },
-			{ action(0.24f, 0.76f, 0.0f, 0.2f, 1.95f, -1.5f, -0.75f, 1.0f, 0.0f, 0.12f, 0.18f,0.6f), 2.0,
+			{ action(0.0f, 0.0f, 0.0f, 0.2f, 1.48f, -1.5f, 0.0f, 1.0f, 0.0f, 0.0f, -0.05f, 0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 1.0 },
+			{ action(0.24f, 0.76f, 0.0f, 0.2f, 1.95f, -1.5f, -0.75f, 1.0f, 0.0f, 0.12f, 0.18f,0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 2.0,
 				L"bulls_eye_1.wav", 0x2u },
-			{ action(2.72f, 0.85f, 0.0f, 0.0f, -0.3f, 0.0f, -1.2f, 0.0f, 0.0f, -1.0f,0.1f,-0.4f,0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f)), 1.5, nullptr, 0, false, true }
+			{ action(2.72f, 0.85f, 0.0f, 0.0f, -0.3f, 0.0f, -1.2f, 0.0f, 0.0f, -1.0f,0.1f,-0.4f,0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f),0.3f), 1.5, nullptr, 0, false, true }
 		};
 		result[4] = { // 5. Downward strike, then a dashing horizontal cut.
 			{ laevateinnSlashReadyPose(), 0.12},{combo[2], 0.5, L"come_on_2.wav", 0x2u},{combo[3], 0.5},
@@ -253,7 +255,8 @@ SkillActionPose mixPose(const SkillActionPose& a, const SkillActionPose& b, floa
 		a.rootY + (b.rootY - a.rootY) * t,
 		a.forward + (b.forward - a.forward) * t,
 		a.heldSwordDirection + (b.heldSwordDirection - a.heldSwordDirection) * t,
-		a.heldSwordRotationY + (b.heldSwordRotationY - a.heldSwordRotationY) * t
+		a.heldSwordRotationY + (b.heldSwordRotationY - a.heldSwordRotationY) * t,
+		a.capeRotationX + (b.capeRotationX - a.capeRotationX) * t
 	};
 }
 
@@ -309,7 +312,7 @@ double enemyHitTime(int skillIndex, int swordStage, double approachDuration) {
 // One held action pose replaces the procedural arm oscillation before the blade is thrown.
 const SkillActionPose& unsealedSwordPreThrowPose() {
 	static const SkillActionPose pose = action(
-		-0.22f, 1.45f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.05f, -0.22f, 0.32f);
+		-0.22f, 1.45f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.05f, -0.22f, 0.32f, 0.0f, 0.0f, 1.2f, glm::vec3(0.0f, 0.0f, 0.0f),1.0f);
 	return pose;
 }
 
@@ -353,12 +356,12 @@ SkillActionPose laevateinnSkill6Pose(double elapsed, double approachDuration) {
 
 	if (elapsed < slashTime + 0.1) {
 		const float t = static_cast<float>(std::clamp((elapsed - slashTime) / 0.1, 0.0, 1.0));
-		return mixPose(laevateinnsuperslashPose(), action(0.5f, -0.5f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, -1.4f, -0.05f, 0.1f), t * t * (3.0f - 2.0f * t));
+		return mixPose(laevateinnsuperslashPose(), action(0.5f, -0.5f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, -1.4f, -0.05f, 0.1f, 0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f), 0.8f), t * t * (3.0f - 2.0f * t));
 	}
 	
 	if (elapsed < slashTime + 0.3) {
 		const float t = static_cast<float>(std::clamp((elapsed - slashTime) / 0.3, 0.0, 1.0));
-		return mixPose(action(0.5f, -0.5f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, -1.4f, -0.05f, 0.1f), laevateinnSkill6SlashPose(), t * t * (3.0f - 2.0f * t));
+		return mixPose(action(0.5f, -0.5f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, -1.4f, -0.05f, 0.1f, 0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f), 0.8f), laevateinnSkill6SlashPose(), t * t * (3.0f - 2.0f * t));
 	}
 	const float t = static_cast<float>(std::clamp((elapsed - slashTime - 4.8) / 1.0, 0.0, 1.0));
 	return mixPose(laevateinnSkill6SlashPose(), SkillActionPose{}, t * t * (3.0f - 2.0f * t));
@@ -424,6 +427,7 @@ CharacterPose applyPose(const CharacterPose& base, const SkillActionPose& skillP
 	pose.torsoRotationZ = base.torsoRotationZ + skillPose.torsoRotationZ;
 	pose.heldSwordDirection = skillPose.heldSwordDirection;
 	pose.heldSwordRotationY = skillPose.heldSwordRotationY;
+	pose.capeRotationX = base.capeRotationX + skillPose.capeRotationX;
 	return pose;
 }
 

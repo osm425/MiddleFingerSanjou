@@ -21,6 +21,8 @@ struct CharacterPose {
 	glm::vec3 heldSwordDirection{ 0.0f };
 	// Additional rotation around the held sword object's local Y axis, in radians.
 	float heldSwordRotationY = 0.0f;
+	// Additional cape rotation around its local X axis, in radians.
+	float capeRotationX = 0.0f;
 	float torsoRotationX = 0.0f;
 	float torsoRotationY = 0.0f;
 	float torsoRotationZ = 0.0f;
