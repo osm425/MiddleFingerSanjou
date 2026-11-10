@@ -54,6 +54,7 @@ struct SkillAnimationState {
 	double elapsed = 0.0;
 	double duration = 0.0;
 	unsigned voiceCueMask = 0;
+	unsigned soundEffectCueMask = 0;
 	bool swordThrown = false;
 	bool thrownSwordVisible = false;
 	int thrownSwordStage = 0;
