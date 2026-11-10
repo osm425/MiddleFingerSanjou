@@ -114,6 +114,7 @@ struct App {
 	int swordStage = 0;
 	SkillAnimationState skillAnimation;
 	std::array<VoicePlayback, 3> voicePlayback;
+	std::array<VoicePlayback, 16> soundEffectPlayback;
 	CharacterPose characterPose;
 	glm::vec3 initialCharacterPosition = characterPose.rootPosition;
 	float initialCharacterYaw = characterPose.rootYaw;
@@ -130,13 +131,15 @@ struct App {
 	int hoveredSkillIndex = -1;
 	bool musicEnabled = true;
 	bool voiceEnabled = true;
+	bool soundEffectsEnabled = true;
 	int framebufferWidth = 1280;
 	int framebufferHeight = 720;
 };
 
 static const Rect START_BUTTON{ 480, 526, 320, 72 };
-static const Rect MUSIC_TOGGLE_BUTTON{ 400, 356, 220, 52 };
-static const Rect VOICE_TOGGLE_BUTTON{ 660, 356, 220, 52 };
+static const Rect MUSIC_TOGGLE_BUTTON{ 190, 356, 220, 52 };
+static const Rect VOICE_TOGGLE_BUTTON{ 530, 356, 220, 52 };
+static const Rect SOUND_EFFECT_TOGGLE_BUTTON{ 870, 356, 220, 52 };
 static const Rect CONFIRM_RETURN_BUTTON{ 470, 438, 150, 58 };
 static const Rect CANCEL_RETURN_BUTTON{ 660, 438, 150, 58 };
 static const Rect CONFIRM_EXIT_BUTTON{ 470, 438, 150, 58 };
@@ -177,6 +180,9 @@ void updateSkillAnimation(App& app, float deltaTime, double now);
 void playSkillVoice(App& app, const wchar_t* fileName, double now);
 void updateVoicePlayback(App& app);
 void stopVoicePlayback(App& app);
+void playSkillSoundEffect(App& app, const wchar_t* fileName, double now);
+void updateSoundEffectPlayback(App& app);
+void stopSoundEffectPlayback(App& app);
 double skillCooldownSeconds(int swordStage, int skillIndex);
 double skillAnimationSeconds(int skillIndex, int swordStage);
 double laevateinnSkill3ThrowTime();

@@ -205,6 +205,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		updateVoicePlayback(app);
+		updateSoundEffectPlayback(app);
 		const double now = glfwGetTime();
 		const float deltaTime = std::clamp(static_cast<float>(now - previousFrameTime), 0.0f, 0.05f);
 		previousFrameTime = now;
@@ -237,6 +238,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	}
 
 	stopVoicePlayback(app);
+	stopSoundEffectPlayback(app);
 	PlaySoundW(nullptr, nullptr, 0);
 	app.ground.release();
 	app.model.release();

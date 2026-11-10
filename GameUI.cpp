@@ -115,12 +115,16 @@ void drawReturnConfirmation(App& app) {
 		app.musicEnabled ? rgba(48, 83, 64) : rgba(62, 62, 68));
 	canvas.rect(VOICE_TOGGLE_BUTTON.x, VOICE_TOGGLE_BUTTON.y, VOICE_TOGGLE_BUTTON.w, VOICE_TOGGLE_BUTTON.h,
 		app.voiceEnabled ? rgba(48, 83, 64) : rgba(62, 62, 68));
+	canvas.rect(SOUND_EFFECT_TOGGLE_BUTTON.x, SOUND_EFFECT_TOGGLE_BUTTON.y, SOUND_EFFECT_TOGGLE_BUTTON.w, SOUND_EFFECT_TOGGLE_BUTTON.h,
+		app.soundEffectsEnabled ? rgba(48, 83, 64) : rgba(62, 62, 68));
 	canvas.rect(CONFIRM_RETURN_BUTTON.x, CONFIRM_RETURN_BUTTON.y, CONFIRM_RETURN_BUTTON.w, CONFIRM_RETURN_BUTTON.h, rgba(106, 34, 42));
 	canvas.rect(CANCEL_RETURN_BUTTON.x, CANCEL_RETURN_BUTTON.y, CANCEL_RETURN_BUTTON.w, CANCEL_RETURN_BUTTON.h, rgba(52, 53, 61));
 	drawCentered(canvas, assets, app.musicEnabled ? L"음악: 켜짐" : L"음악: 꺼짐", 20,
 		rgba(255, 247, 230), MUSIC_TOGGLE_BUTTON.x + MUSIC_TOGGLE_BUTTON.w * 0.5f, MUSIC_TOGGLE_BUTTON.y + 15, true);
 	drawCentered(canvas, assets, app.voiceEnabled ? L"보이스: 켜짐" : L"보이스: 꺼짐", 20,
 		rgba(255, 247, 230), VOICE_TOGGLE_BUTTON.x + VOICE_TOGGLE_BUTTON.w * 0.5f, VOICE_TOGGLE_BUTTON.y + 15, true);
+	drawCentered(canvas, assets, app.soundEffectsEnabled ? L"효과음: 켜짐" : L"효과음: 꺼짐", 20,
+		rgba(255, 247, 230), SOUND_EFFECT_TOGGLE_BUTTON.x + SOUND_EFFECT_TOGGLE_BUTTON.w * 0.5f, SOUND_EFFECT_TOGGLE_BUTTON.y + 15, true);
 	drawCentered(canvas, assets, L"확인", 22, rgba(255, 247, 230), CONFIRM_RETURN_BUTTON.x + CONFIRM_RETURN_BUTTON.w * 0.5f, CONFIRM_RETURN_BUTTON.y + 17, true);
 	drawCentered(canvas, assets, L"취소", 22, rgba(240, 240, 240), CANCEL_RETURN_BUTTON.x + CANCEL_RETURN_BUTTON.w * 0.5f, CANCEL_RETURN_BUTTON.y + 17, true);
 }
@@ -134,12 +138,16 @@ void drawExitConfirmation(App& app) {
 		app.musicEnabled ? rgba(48, 83, 64) : rgba(62, 62, 68));
 	canvas.rect(VOICE_TOGGLE_BUTTON.x, VOICE_TOGGLE_BUTTON.y, VOICE_TOGGLE_BUTTON.w, VOICE_TOGGLE_BUTTON.h,
 		app.voiceEnabled ? rgba(48, 83, 64) : rgba(62, 62, 68));
+	canvas.rect(SOUND_EFFECT_TOGGLE_BUTTON.x, SOUND_EFFECT_TOGGLE_BUTTON.y, SOUND_EFFECT_TOGGLE_BUTTON.w, SOUND_EFFECT_TOGGLE_BUTTON.h,
+		app.soundEffectsEnabled ? rgba(48, 83, 64) : rgba(62, 62, 68));
 	canvas.rect(CONFIRM_EXIT_BUTTON.x, CONFIRM_EXIT_BUTTON.y, CONFIRM_EXIT_BUTTON.w, CONFIRM_EXIT_BUTTON.h, rgba(106, 34, 42));
 	canvas.rect(CANCEL_EXIT_BUTTON.x, CANCEL_EXIT_BUTTON.y, CANCEL_EXIT_BUTTON.w, CANCEL_EXIT_BUTTON.h, rgba(52, 53, 61));
 	drawCentered(canvas, assets, app.musicEnabled ? L"음악: 켜짐" : L"음악: 꺼짐", 20,
 		rgba(255, 247, 230), MUSIC_TOGGLE_BUTTON.x + MUSIC_TOGGLE_BUTTON.w * 0.5f, MUSIC_TOGGLE_BUTTON.y + 15, true);
 	drawCentered(canvas, assets, app.voiceEnabled ? L"보이스: 켜짐" : L"보이스: 꺼짐", 20,
 		rgba(255, 247, 230), VOICE_TOGGLE_BUTTON.x + VOICE_TOGGLE_BUTTON.w * 0.5f, VOICE_TOGGLE_BUTTON.y + 15, true);
+	drawCentered(canvas, assets, app.soundEffectsEnabled ? L"효과음: 켜짐" : L"효과음: 꺼짐", 20,
+		rgba(255, 247, 230), SOUND_EFFECT_TOGGLE_BUTTON.x + SOUND_EFFECT_TOGGLE_BUTTON.w * 0.5f, SOUND_EFFECT_TOGGLE_BUTTON.y + 15, true);
 	drawCentered(canvas, assets, L"확인", 22, rgba(255, 247, 230), CONFIRM_EXIT_BUTTON.x + CONFIRM_EXIT_BUTTON.w * 0.5f, CONFIRM_EXIT_BUTTON.y + 17, true);
 	drawCentered(canvas, assets, L"취소", 22, rgba(240, 240, 240), CANCEL_EXIT_BUTTON.x + CANCEL_EXIT_BUTTON.w * 0.5f, CANCEL_EXIT_BUTTON.y + 17, true);
 }

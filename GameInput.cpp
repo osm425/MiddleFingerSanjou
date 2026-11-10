@@ -107,6 +107,57 @@ void stopVoicePlayback(App& app) {
 	for (VoicePlayback& playback : app.voicePlayback) releaseVoicePlayback(playback, true);
 }
 
+void updateSoundEffectPlayback(App& app) {
+	for (VoicePlayback& playback : app.soundEffectPlayback) {
+		if (playback.device && playback.completed.load(std::memory_order_acquire)) {
+			releaseVoicePlayback(playback, false);
+		}
+	}
+}
+
+void stopSoundEffectPlayback(App& app) {
+	for (VoicePlayback& playback : app.soundEffectPlayback) releaseVoicePlayback(playback, true);
+}
+
+void playSkillSoundEffect(App& app, const wchar_t* fileName, double now) {
+	if (!app.soundEffectsEnabled) return;
+	const fs::path path = app.assetRoot / L"soundeffects" / fileName;
+	WAVEFORMATEX format{};
+	std::vector<char> samples;
+	if (!readPcmWave(path, format, samples)) {
+		std::wcerr << L"Could not read PCM sound effect: " << path.wstring() << L'\n';
+		return;
+	}
+	updateSoundEffectPlayback(app);
+	VoicePlayback* slot = nullptr;
+	for (VoicePlayback& playback : app.soundEffectPlayback) {
+		if (!playback.device) { slot = &playback; break; }
+	}
+	if (!slot) {
+		slot = &*std::min_element(app.soundEffectPlayback.begin(), app.soundEffectPlayback.end(),
+			[](const VoicePlayback& a, const VoicePlayback& b) { return a.startedAt < b.startedAt; });
+		releaseVoicePlayback(*slot, true);
+	}
+	slot->audioData = std::move(samples);
+	slot->completed.store(false, std::memory_order_release);
+	slot->startedAt = now;
+	const MMRESULT opened = waveOutOpen(&slot->device, WAVE_MAPPER, &format,
+		reinterpret_cast<DWORD_PTR>(voicePlaybackCallback), reinterpret_cast<DWORD_PTR>(slot), CALLBACK_FUNCTION);
+	if (opened != MMSYSERR_NOERROR) {
+		releaseVoicePlayback(*slot, false);
+		std::wcerr << L"Could not open sound effect output: " << path.wstring() << L'\n';
+		return;
+	}
+	slot->header = {};
+	slot->header.lpData = slot->audioData.data();
+	slot->header.dwBufferLength = static_cast<DWORD>(slot->audioData.size());
+	if (waveOutPrepareHeader(slot->device, &slot->header, sizeof(slot->header)) != MMSYSERR_NOERROR
+		|| waveOutWrite(slot->device, &slot->header, sizeof(slot->header)) != MMSYSERR_NOERROR) {
+		releaseVoicePlayback(*slot, true);
+		std::wcerr << L"Could not play sound effect: " << path.wstring() << L'\n';
+	}
+}
+
 void playSkillVoice(App& app, const wchar_t* fileName, double now) {
 	if (!app.voiceEnabled) return;
 	const fs::path path = app.assetRoot / L"voice" / fileName;
@@ -248,6 +299,7 @@ void confirmReturnToStart(App& app) {
 	app.cooldownDurations.fill(0.0);
 	app.skillAnimation = {};
 	stopVoicePlayback(app);
+	stopSoundEffectPlayback(app);
 	app.swordStage = 0;
 	app.enemyYaw = 0.0f;
 	app.enemyYawSet = false;
@@ -348,6 +400,10 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int) {
 			app->voiceEnabled = !app->voiceEnabled;
 			if (!app->voiceEnabled) stopVoicePlayback(*app);
 		}
+		else if (inside(designX, designY, SOUND_EFFECT_TOGGLE_BUTTON)) {
+			app->soundEffectsEnabled = !app->soundEffectsEnabled;
+			if (!app->soundEffectsEnabled) stopSoundEffectPlayback(*app);
+		}
 		else if (inside(designX, designY, CONFIRM_EXIT_BUTTON)) glfwSetWindowShouldClose(window, GLFW_TRUE);
 		else if (inside(designX, designY, CANCEL_EXIT_BUTTON)) app->screen = Screen::Start;
 		return;
@@ -357,6 +413,10 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int) {
 		else if (inside(designX, designY, VOICE_TOGGLE_BUTTON)) {
 			app->voiceEnabled = !app->voiceEnabled;
 			if (!app->voiceEnabled) stopVoicePlayback(*app);
+		}
+		else if (inside(designX, designY, SOUND_EFFECT_TOGGLE_BUTTON)) {
+			app->soundEffectsEnabled = !app->soundEffectsEnabled;
+			if (!app->soundEffectsEnabled) stopSoundEffectPlayback(*app);
 		}
 		else if (inside(designX, designY, CONFIRM_RETURN_BUTTON)) confirmReturnToStart(*app);
 		else if (inside(designX, designY, CANCEL_RETURN_BUTTON)) cancelReturnConfirmation(*app, glfwGetTime());
