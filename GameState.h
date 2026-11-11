@@ -78,8 +78,14 @@ struct VoicePlayback {
 	HWAVEOUT device = nullptr;
 	WAVEHDR header{};
 	std::vector<char> audioData;
+	std::vector<char> outputData;
+	WAVEFORMATEX format{};
 	std::atomic<bool> completed{ true };
 	double startedAt = 0.0;
+	std::wstring fileName;
+	float gain = 1.0f;
+	bool spatialized = false;
+	glm::vec3 sourcePosition{ 0.0f };
 };
 
 enum class Screen { Start, Main, ConfirmReturn, ConfirmExit };
@@ -182,6 +188,9 @@ void playSkillVoice(App& app, const wchar_t* fileName, double now);
 void updateVoicePlayback(App& app);
 void stopVoicePlayback(App& app);
 void playSkillSoundEffect(App& app, const wchar_t* fileName, double now);
+void playSpatialSkillSoundEffect(App& app, const wchar_t* fileName, double now);
+void setSkillSoundEffectVolume(App& app, const wchar_t* fileName, float gain);
+void stopSkillSoundEffect(App& app, const wchar_t* fileName);
 void updateSoundEffectPlayback(App& app);
 void stopSoundEffectPlayback(App& app);
 double skillCooldownSeconds(int swordStage, int skillIndex);

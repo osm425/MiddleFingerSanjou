@@ -197,43 +197,64 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 	static const std::array<std::vector<SkillFrame>, 6> frames = [] {
 		std::array<std::vector<SkillFrame>, 6> result{};
 		result[0] = { // 1. Lower, high kick, raise the sword, dash and cut down.
-			{ laevateinnReadyPose(), 0.2 }, { laevateinnHighKickPose(), 1.0 },
-			{ laevateinnSlashReadyPose(), 0.4},{combo[2], 0.75}
+			{ laevateinnReadyPose(), 0.2, nullptr, 0, false, false, { L"human_drag.wav" } },
+			{ laevateinnHighKickPose(), 1.0, nullptr, 0, false, false, { L"middlefather_1_1.wav" } },
+			{ laevateinnSlashReadyPose(), 0.4, nullptr, 0, false, false, { L"middlefather_1_2-1.wav", L"middlefather_f_1-2.wav" } },
+			{ combo[2], 0.75, nullptr, 0, false, false, { L"middlefather_1_2-2.wav", L"middlefather_f_1-1.wav" } }
 		};
 		result[1] = { // 2. Two high kicks, one vertical kick, then two three-stab batches and retreat.
-			{ laevateinnReadyPose(), 0.1 }, { laevateinnHighKickPose(), 0.1 },
-			{ laevateinnReadyPose(), 0.1 }, { laevateinnHighKickPose(), 0.1 },
-			{ laevateinnReadyPose(), 0.1 }, { laevateinnVerticalKickPose(), 0.3 },
+			{ laevateinnReadyPose(), 0.1 },
+			{ laevateinnHighKickPose(), 0.1, nullptr, 0, false, false, { L"middlefather_1_1.wav" } },
+			{ laevateinnReadyPose(), 0.1 },
+			{ laevateinnHighKickPose(), 0.1, nullptr, 0, false, false, { L"middlefather_1_1.wav" } },
+			{ laevateinnReadyPose(), 0.1 },
+			{ laevateinnVerticalKickPose(), 0.3, nullptr, 0, false, false, { L"middlefather_2_3.wav" } },
 
 		};
 		result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1 });
-		result[1].push_back({ laevateinnStabPose(), 0.5, L"is_hot_1.wav", 0x2u });
+		result[1].push_back({ laevateinnStabPose(), 0.5, L"is_hot_1.wav", 0x2u, false, false, { L"middlefather_ch_1.wav" } });
 		for (int batch = 0; batch < 2; ++batch) {
 			for (int stab = 0; stab < 3; ++stab) {
-				result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1 });
-				result[1].push_back({ laevateinnStabPose(), 0.1 });
+				if (stab == 0) {
+					const wchar_t* batchCue = batch == 0 ? L"middlefather_f_1-1.wav" : L"middlefather_f_1-2.wav";
+					result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1, nullptr, 0, false, false, { batchCue } });
+				}
+				else {
+					result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1 });
+				}
+				result[1].push_back({ laevateinnStabPose(), 0.1, nullptr, 0, false, false, { L"middlefather_2_4.wav" } });
 			}
 			result[1].push_back({ laevateinnStabPose(), 0.3 });
 		}
-		result[1].push_back({ laevateinnStabPose(), 0.2 , L"is_hot_2.wav", 0x4u });
-		result[1].push_back({ laevateinnSkill6SlashPose(), 1.5}); // withdraw with the sword
+		result[1].push_back({ laevateinnStabPose(), 0.2, L"is_hot_2.wav", 0x4u, false, false,
+			{ L"middlefather_ch_1.wav", L"middlefather_2_5-1.wav" } });
+		result[1].push_back({ laevateinnSkill6SlashPose(), 1.5, nullptr, 0, false, false,
+			{ L"middlefather_2_5-2.wav", L"middlefather_f_1-1.wav" } }); // withdraw with the sword
 
 
 
 		result[2] = { // 3. Down, right-to-left, up, heavy down, throw, leap-kick and retrieve.
-			{ laevateinnSlashReadyPose(), 0.2 }, { combo[2], 0.5 },{ combo[3], 0.2 },
-			{ combo[4], 0.5}, { combo[6], 0.5 },
-			{ laevateinnsuperslashPose(), 0.2 }, { combo[4], 0.8 },
-			{ laevateinnsuperslashPose(), 0.5 }, { combo[4], 0.5, nullptr, 0, true }, // throw at this frame's start
-			{ rightLegStompAndLeftKneel(), 0.5 },
-			{ action(0.0f, 0.0f, 0.0f, 0.2f, 1.48f, -1.5f, 0.0f, 1.0f, 0.0f, 0.0f, -0.05f, 0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 1.0 },
+			{ laevateinnSlashReadyPose(), 0.2, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
+			{ combo[2], 0.5, nullptr, 0, false, false, { L"middlefather_f_1-1.wav" } },
+			{ combo[3], 0.2, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
+			{ combo[4], 0.5, nullptr, 0, false, false, { L"middlefather_f_1.wav" } },
+			{ combo[6], 0.5, nullptr, 0, false, false, { L"middlefather_f_1-2.wav" } },
+			{ laevateinnsuperslashPose(), 0.2, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
+			{ combo[4], 0.8, nullptr, 0, false, false, { L"middlefather_6_4.wav", L"middlefather_f_1.wav" } },
+			{ laevateinnsuperslashPose(), 0.5, nullptr, 0, false, false, { L"middlefather_f_1-1.wav" } },
+			{ combo[4], 0.5, nullptr, 0, true, false, { L"middlefather_5_1-2.wav" } }, // throw at this frame's start
+			{ rightLegStompAndLeftKneel(), 0.5, nullptr, 0, false, false, { L"human_drag.wav" } },
+			{ action(0.0f, 0.0f, 0.0f, 0.2f, 1.48f, -1.5f, 0.0f, 1.0f, 0.0f, 0.0f, -0.05f, 0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 1.0, nullptr, 0, false, false, { L"human_jump.wav" } },
 			{ action(0.24f, 0.76f, 0.0f, 0.2f, 1.95f, -1.5f, -0.75f, 1.0f, 0.0f, 0.12f, 0.18f,0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 2.0,
-				L"bulls_eye_1.wav", 0x2u },
-			{ action(2.72f, 0.85f, 0.0f, 0.0f, -0.3f, 0.0f, -1.2f, 0.0f, 0.0f, -1.0f,0.1f,-0.4f,0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f),0.3f), 1.5, nullptr, 0, false, true }
+				L"bulls_eye_1.wav", 0x2u, false, false, { L"middlefather_ch_1.wav" } },
+			{ action(2.72f, 0.85f, 0.0f, 0.0f, -0.3f, 0.0f, -1.2f, 0.0f, 0.0f, -1.0f,0.1f,-0.4f,0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f),0.3f), 1.5, nullptr, 0, false, true,
+				{ L"middlefather_5_2-2.wav" } }
 		};
 		result[4] = { // 5. Downward strike, then a dashing horizontal cut.
-			{ laevateinnSlashReadyPose(), 0.12},{combo[2], 0.5, L"come_on_2.wav", 0x2u},{combo[3], 0.5},
-			{ combo[4], 0.6}
+			{ laevateinnSlashReadyPose(), 0.12, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
+			{ combo[2], 0.5, L"come_on_2.wav", 0x2u, false, false, { L"middlefather_1_2-2.wav", L"middlefather_f_1-2.wav" } },
+			{ combo[3], 0.5 },
+			{ combo[4], 0.6, nullptr, 0, false, false, { L"middlefather_2_5-2.wav", L"middlefather_f_1-1.wav" } }
 		};
 		return result;
 	}();
@@ -280,6 +301,12 @@ double frameSequenceDuration(const std::vector<SkillFrame>& frames) {
 	double total = 0.0;
 	for (const SkillFrame& frame : frames) total += frame.duration;
 	return total;
+}
+
+double frameStartTime(const std::vector<SkillFrame>& frames, size_t frameIndex) {
+	double start = 0.0;
+	for (size_t i = 0; i < frameIndex && i < frames.size(); ++i) start += frames[i].duration;
+	return start;
 }
 
 double laevateinnSkill3FrameEventTime(bool SkillFrame::*eventFlag) {
@@ -569,6 +596,15 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 				}
 			}
 		}
+		else if (animation.swordStageAtStart == 3) {
+			const bool enteringAtStart = actionStart <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0;
+			const bool crossedActionStart = previousElapsed < actionStart && animation.elapsed >= actionStart;
+			if (enteringAtStart || crossedActionStart) {
+				for (const wchar_t* soundEffect : frame.soundEffectsOnEnter) {
+					if (soundEffect) playSkillSoundEffect(app, soundEffect, now);
+				}
+			}
+		}
 		if (frame.voiceOnEnter) {
 			const bool enteringAtStart = actionStart <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0;
 			const bool crossedActionStart = previousElapsed < actionStart && animation.elapsed >= actionStart;
@@ -579,6 +615,61 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 			}
 		}
 		actionStart += frame.duration;
+	}
+	const auto crossedSkillTime = [previousElapsed, &animation](double time) {
+		return (previousElapsed < time && animation.elapsed >= time)
+			|| (time <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0);
+	};
+	if (animation.swordStageAtStart == 3 && skillIndex == 0) {
+		const double combo2Start = frameStartTime(laevateinnSkillFrames()[0], 3);
+		const double flourishTime = combo2Start + 0.2;
+		if (crossedSkillTime(flourishTime) && (animation.soundEffectCueMask & 0x1u) == 0) {
+			animation.soundEffectCueMask |= 0x1u;
+			playSkillSoundEffect(app, L"middlefather_f_1.wav", now);
+		}
+		for (int repeat = 0; repeat < 3; ++repeat) {
+			const unsigned cueBit = 0x2u << repeat;
+			if (crossedSkillTime(flourishTime + repeat * 0.1)
+				&& (animation.soundEffectCueMask & cueBit) == 0) {
+				animation.soundEffectCueMask |= cueBit;
+				playSkillSoundEffect(app, L"Sword_Hori.wav", now);
+			}
+		}
+	}
+	if (animation.swordStageAtStart == 3 && skillIndex == 2) {
+		if (animation.lungeDuration > 0.0
+			&& crossedSkillTime(animation.lungeStart + animation.lungeDuration)
+			&& (animation.soundEffectCueMask & 0x10u) == 0) {
+			animation.soundEffectCueMask |= 0x10u;
+			playSkillSoundEffect(app, L"middlefather_4_1.wav", now);
+		}
+		const double retrievalStart = laevateinnSkill3RetrievalTime();
+		const double retrievalDuration = laevateinnSkillFrames()[2].back().duration;
+		if (crossedSkillTime(retrievalStart + retrievalDuration * 0.25)
+			&& (animation.soundEffectCueMask & 0x20u) == 0) {
+			animation.soundEffectCueMask |= 0x20u;
+			playSkillSoundEffect(app, L"middlefather_4_2.wav", now);
+			playSkillSoundEffect(app, L"middlefather_f_1-2.wav", now);
+		}
+	}
+	if (animation.swordStageAtStart == 3 && skillIndex == 5) {
+		if (crossedSkillTime(0.0) && (animation.soundEffectCueMask & 0x40u) == 0) {
+			animation.soundEffectCueMask |= 0x40u;
+			playSpatialSkillSoundEffect(app, L"middleswordsq_1.wav", now);
+		}
+		if (crossedSkillTime(animation.lungeDuration)
+			&& (animation.soundEffectCueMask & 0x80u) == 0) {
+			animation.soundEffectCueMask |= 0x80u;
+			setSkillSoundEffectVolume(app, L"middleswordsq_1.wav", 0.5f);
+			playSpatialSkillSoundEffect(app, L"middleswordsq_2.wav", now);
+		}
+		const double slashTime = animation.lungeDuration + laevateinnSkill6HoldBeforeSlash;
+		if (crossedSkillTime(slashTime) && (animation.soundEffectCueMask & 0x100u) == 0) {
+			animation.soundEffectCueMask |= 0x100u;
+			stopSkillSoundEffect(app, L"middleswordsq_1.wav");
+			stopSkillSoundEffect(app, L"middleswordsq_2.wav");
+			playSpatialSkillSoundEffect(app, L"middleswordsq_3.wav", now);
+		}
 	}
 	if ((animation.swordStageAtStart == 1 || animation.swordStageAtStart == 2) && skillIndex == 5) {
 		const auto crossedActionStart = [previousElapsed, &animation](double start) {
@@ -748,7 +839,13 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 			+ glm::vec3(0.0f, -0.5f * gravity * t * t, 0.0f);
 		if (animation.swordStageAtStart == 3 && skillIndex == 2) {
 			if (animation.thrownSwordElapsed >= animation.thrownSwordFlightDuration) {
-				animation.thrownSwordPlanted = true;
+				if (!animation.thrownSwordPlanted) {
+					animation.thrownSwordPlanted = true;
+					if ((animation.soundEffectCueMask & 0x200u) == 0) {
+						animation.soundEffectCueMask |= 0x200u;
+						playSkillSoundEffect(app, L"middlefather_5_1-3.wav", now);
+					}
+				}
 				animation.thrownSwordDirection = swordPlantDirection(app);
 			}
 			if (animation.elapsed >= laevateinnSkill3RetrievalTime()) animation.thrownSwordVisible = false;

@@ -1,4 +1,6 @@
-﻿#include "GameState.h"
+#include "GameState.h"
+#include <cstdint>
+#include <cstring>
 
 bool inside(float x, float y, const Rect& rect) {
 	return x >= rect.x && y >= rect.y && x <= rect.x + rect.w && y <= rect.y + rect.h;
@@ -38,7 +40,7 @@ static void CALLBACK voicePlaybackCallback(HWAVEOUT, UINT message, DWORD_PTR ins
 	playback->completed.store(true, std::memory_order_release);
 }
 
-static void releaseVoicePlayback(VoicePlayback& playback, bool stop) {
+static void closeVoicePlaybackDevice(VoicePlayback& playback, bool stop) {
 	if (playback.device) {
 		if (stop) waveOutReset(playback.device);
 		if ((playback.header.dwFlags & WHDR_PREPARED) != 0) {
@@ -48,9 +50,19 @@ static void releaseVoicePlayback(VoicePlayback& playback, bool stop) {
 	}
 	playback.device = nullptr;
 	playback.header = {};
+}
+
+static void releaseVoicePlayback(VoicePlayback& playback, bool stop) {
+	closeVoicePlaybackDevice(playback, stop);
 	playback.audioData.clear();
+	playback.outputData.clear();
+	playback.format = {};
 	playback.completed.store(true, std::memory_order_release);
 	playback.startedAt = 0.0;
+	playback.fileName.clear();
+	playback.gain = 1.0f;
+	playback.spatialized = false;
+	playback.sourcePosition = glm::vec3(0.0f);
 }
 
 static bool readPcmWave(const fs::path& path, WAVEFORMATEX& format, std::vector<char>& samples) {
@@ -95,6 +107,22 @@ static bool readPcmWave(const fs::path& path, WAVEFORMATEX& format, std::vector<
 		&& format.nChannels > 0 && format.nSamplesPerSec > 0 && format.nBlockAlign > 0 && !samples.empty();
 }
 
+static bool openVoicePlaybackDevice(VoicePlayback& playback) {
+	playback.completed.store(false, std::memory_order_release);
+	const MMRESULT opened = waveOutOpen(&playback.device, WAVE_MAPPER, &playback.format,
+		reinterpret_cast<DWORD_PTR>(voicePlaybackCallback), reinterpret_cast<DWORD_PTR>(&playback), CALLBACK_FUNCTION);
+	if (opened != MMSYSERR_NOERROR) return false;
+	playback.header = {};
+	playback.header.lpData = playback.outputData.data();
+	playback.header.dwBufferLength = static_cast<DWORD>(playback.outputData.size());
+	if (waveOutPrepareHeader(playback.device, &playback.header, sizeof(playback.header)) != MMSYSERR_NOERROR
+		|| waveOutWrite(playback.device, &playback.header, sizeof(playback.header)) != MMSYSERR_NOERROR) {
+		closeVoicePlaybackDevice(playback, true);
+		return false;
+	}
+	return true;
+}
+
 void updateVoicePlayback(App& app) {
 	for (VoicePlayback& playback : app.voicePlayback) {
 		if (playback.device && playback.completed.load(std::memory_order_acquire)) {
@@ -105,6 +133,53 @@ void updateVoicePlayback(App& app) {
 
 void stopVoicePlayback(App& app) {
 	for (VoicePlayback& playback : app.voicePlayback) releaseVoicePlayback(playback, true);
+}
+
+static glm::vec3 kiraSoundSourcePosition(const App& app) {
+	glm::vec3 towardEnemy = app.enemyPosition - app.characterPose.rootPosition;
+	towardEnemy.y = 0.0f;
+	if (glm::length(towardEnemy) < 1e-5f) towardEnemy = glm::vec3(0.0f, 0.0f, 1.0f);
+	towardEnemy = glm::normalize(towardEnemy);
+	return app.enemyPosition - towardEnemy * LAEVATEINN_SKILL6_KIRA_FORWARD_OFFSET;
+}
+
+static void renderSoundEffectSamples(VoicePlayback& playback, const App& app) {
+	// Apply per-sound gain and pan to PCM samples; waveOutSetVolume affects unrelated streams too.
+	playback.outputData = playback.audioData;
+	float left = std::clamp(playback.gain, 0.0f, 1.0f);
+	float right = left;
+	if (playback.spatialized) {
+		const glm::vec3 target = app.characterPose.rootPosition;
+		const glm::vec3 listener = sceneCameraPosition(target, app.cameraYaw, app.cameraPitch);
+		glm::vec3 towardTarget = target - listener;
+		if (glm::length(towardTarget) < 1e-5f) towardTarget = glm::vec3(0.0f, 0.0f, -1.0f);
+		towardTarget = glm::normalize(towardTarget);
+		glm::vec3 cameraRight = glm::cross(towardTarget, glm::vec3(0.0f, 1.0f, 0.0f));
+		if (glm::length(cameraRight) < 1e-5f) cameraRight = glm::vec3(1.0f, 0.0f, 0.0f);
+		cameraRight = glm::normalize(cameraRight);
+		const glm::vec3 sourceDirection = playback.sourcePosition - listener;
+		const float distance = glm::length(sourceDirection);
+		const float pan = distance > 1e-5f
+			? std::clamp(glm::dot(sourceDirection / distance, cameraRight), -1.0f, 1.0f) : 0.0f;
+		const float attenuation = 1.0f / (1.0f + (distance / 12.0f) * (distance / 12.0f));
+		left *= attenuation * (pan > 0.0f ? 1.0f - pan : 1.0f);
+		right *= attenuation * (pan < 0.0f ? 1.0f + pan : 1.0f);
+	}
+	if (playback.format.wFormatTag != WAVE_FORMAT_PCM || playback.format.wBitsPerSample != 16
+		|| playback.format.nBlockAlign < playback.format.nChannels * sizeof(int16_t)) return;
+
+	const size_t sampleCount = playback.outputData.size() / sizeof(int16_t);
+	for (size_t sampleIndex = 0; sampleIndex < sampleCount; ++sampleIndex) {
+		const int channel = static_cast<int>(sampleIndex % playback.format.nChannels);
+		const float channelGain = playback.spatialized && playback.format.nChannels >= 2
+			? (channel == 0 ? left : channel == 1 ? right : (left + right) * 0.5f)
+			: playback.gain;
+		int16_t sample = 0;
+		std::memcpy(&sample, playback.audioData.data() + sampleIndex * sizeof(sample), sizeof(sample));
+		const int16_t scaled = static_cast<int16_t>(std::clamp(
+			std::lround(static_cast<float>(sample) * channelGain), -32768L, 32767L));
+		std::memcpy(playback.outputData.data() + sampleIndex * sizeof(scaled), &scaled, sizeof(scaled));
+	}
 }
 
 void updateSoundEffectPlayback(App& app) {
@@ -119,7 +194,38 @@ void stopSoundEffectPlayback(App& app) {
 	for (VoicePlayback& playback : app.soundEffectPlayback) releaseVoicePlayback(playback, true);
 }
 
-void playSkillSoundEffect(App& app, const wchar_t* fileName, double now) {
+void stopSkillSoundEffect(App& app, const wchar_t* fileName) {
+	for (VoicePlayback& playback : app.soundEffectPlayback) {
+		if (playback.device && playback.fileName == fileName) releaseVoicePlayback(playback, true);
+	}
+}
+
+void setSkillSoundEffectVolume(App& app, const wchar_t* fileName, float gain) {
+	for (VoicePlayback& playback : app.soundEffectPlayback) {
+		if (playback.device && playback.fileName == fileName) {
+			MMTIME position{};
+			position.wType = TIME_BYTES;
+			if (waveOutGetPosition(playback.device, &position, sizeof(position)) != MMSYSERR_NOERROR
+				|| position.wType != TIME_BYTES) continue;
+			size_t consumedBytes = std::min<size_t>(position.u.cb, playback.audioData.size());
+			consumedBytes -= consumedBytes % playback.format.nBlockAlign;
+			if (consumedBytes >= playback.audioData.size()) {
+				releaseVoicePlayback(playback, true);
+				continue;
+			}
+			playback.gain = std::clamp(gain, 0.0f, 1.0f);
+			// Resume the active clip from its playback cursor so only this sound changes gain.
+			closeVoicePlaybackDevice(playback, true);
+			playback.audioData.erase(playback.audioData.begin(), playback.audioData.begin() + consumedBytes);
+			if (playback.spatialized) playback.sourcePosition = kiraSoundSourcePosition(app);
+			renderSoundEffectSamples(playback, app);
+			if (!openVoicePlaybackDevice(playback)) releaseVoicePlayback(playback, false);
+		}
+	}
+}
+
+static void playSkillSoundEffectInternal(App& app, const wchar_t* fileName, double now,
+	bool spatialized, float gain) {
 	if (!app.soundEffectsEnabled) return;
 	const fs::path path = app.assetRoot / L"soundeffects" / fileName;
 	WAVEFORMATEX format{};
@@ -139,23 +245,26 @@ void playSkillSoundEffect(App& app, const wchar_t* fileName, double now) {
 		releaseVoicePlayback(*slot, true);
 	}
 	slot->audioData = std::move(samples);
-	slot->completed.store(false, std::memory_order_release);
+	slot->format = format;
 	slot->startedAt = now;
-	const MMRESULT opened = waveOutOpen(&slot->device, WAVE_MAPPER, &format,
-		reinterpret_cast<DWORD_PTR>(voicePlaybackCallback), reinterpret_cast<DWORD_PTR>(slot), CALLBACK_FUNCTION);
-	if (opened != MMSYSERR_NOERROR) {
+	slot->fileName = fileName;
+	slot->gain = std::clamp(gain, 0.0f, 1.0f);
+	slot->spatialized = spatialized;
+	if (spatialized) slot->sourcePosition = kiraSoundSourcePosition(app);
+	renderSoundEffectSamples(*slot, app);
+	if (!openVoicePlaybackDevice(*slot)) {
 		releaseVoicePlayback(*slot, false);
 		std::wcerr << L"Could not open sound effect output: " << path.wstring() << L'\n';
 		return;
 	}
-	slot->header = {};
-	slot->header.lpData = slot->audioData.data();
-	slot->header.dwBufferLength = static_cast<DWORD>(slot->audioData.size());
-	if (waveOutPrepareHeader(slot->device, &slot->header, sizeof(slot->header)) != MMSYSERR_NOERROR
-		|| waveOutWrite(slot->device, &slot->header, sizeof(slot->header)) != MMSYSERR_NOERROR) {
-		releaseVoicePlayback(*slot, true);
-		std::wcerr << L"Could not play sound effect: " << path.wstring() << L'\n';
-	}
+}
+
+void playSkillSoundEffect(App& app, const wchar_t* fileName, double now) {
+	playSkillSoundEffectInternal(app, fileName, now, false, 1.0f);
+}
+
+void playSpatialSkillSoundEffect(App& app, const wchar_t* fileName, double now) {
+	playSkillSoundEffectInternal(app, fileName, now, true, 1.0f);
 }
 
 void playSkillVoice(App& app, const wchar_t* fileName, double now) {
@@ -178,22 +287,13 @@ void playSkillVoice(App& app, const wchar_t* fileName, double now) {
 		releaseVoicePlayback(*slot, true);
 	}
 	slot->audioData = std::move(samples);
-	slot->completed.store(false, std::memory_order_release);
+	slot->outputData = slot->audioData;
+	slot->format = format;
 	slot->startedAt = now;
-	const MMRESULT opened = waveOutOpen(&slot->device, WAVE_MAPPER, &format,
-		reinterpret_cast<DWORD_PTR>(voicePlaybackCallback), reinterpret_cast<DWORD_PTR>(slot), CALLBACK_FUNCTION);
-	if (opened != MMSYSERR_NOERROR) {
+	if (!openVoicePlaybackDevice(*slot)) {
 		releaseVoicePlayback(*slot, false);
 		std::wcerr << L"Could not open voice output: " << path.wstring() << L'\n';
 		return;
-	}
-	slot->header = {};
-	slot->header.lpData = slot->audioData.data();
-	slot->header.dwBufferLength = static_cast<DWORD>(slot->audioData.size());
-	if (waveOutPrepareHeader(slot->device, &slot->header, sizeof(slot->header)) != MMSYSERR_NOERROR
-		|| waveOutWrite(slot->device, &slot->header, sizeof(slot->header)) != MMSYSERR_NOERROR) {
-		releaseVoicePlayback(*slot, true);
-		std::wcerr << L"Could not play voice: " << path.wstring() << L'\n';
 	}
 }
 
