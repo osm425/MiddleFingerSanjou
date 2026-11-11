@@ -30,7 +30,8 @@ struct SkillFrame {
 	bool swordRetrievalOnEnter = false;
 	std::vector<const wchar_t*> soundEffectsOnEnter;
 	std::vector<const wchar_t*> stage1SoundEffectsOnEnter;
-	double stage1SoundEffectDelay = 0.0;
+	double unsealedSoundEffectDelay = 0.0;
+	std::vector<const wchar_t*> stage2SoundEffectsOnEnter;
 };
 
 constexpr float unsealedSwordForwardSpeed = 20.0f;
@@ -137,13 +138,13 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 		},
 		{ // 6. Reuse the sword combo, then transition and throw at the 3_10 pose
 			{ combo[0], 0.1 },
-			{ combo[1], 0.5, nullptr, 0, false, false, { L"middlefather_0_7-1.wav" }, { L"middlefather_0_7-1.wav", L"middlefather_f_1-1.wav" } },
-			{ combo[2], 0.5, nullptr, 0, false, false, { L"middlefather_0_7-2.wav" }, { L"middlefather_0_7-2.wav", L"middlefather_f_1.wav" } },
-			{ combo[3], 0.5, nullptr, 0, false, false, {}, { L"middlefather_ch_1.wav" } },
-			{ combo[4], 0.6, nullptr, 0, false, false, { L"middlefather_0_8.wav" }, { L"middlefather_0_8.wav", L"middlefather_f_1.wav" } },
-			{ combo[5], 0.6, nullptr, 0, false, false, { L"middlefather_0_9-1.wav" }, { L"middlefather_0_9-1.wav", L"middlefather_ch_1.wav" } },
+			{ combo[1], 0.5, nullptr, 0, false, false, { L"middlefather_0_7-1.wav" }, { L"middlefather_0_7-1.wav", L"middlefather_f_1-1.wav" }, 0.0, { L"middlefather_0_7-1.wav", L"middlefather_ch_1.wav" } },
+			{ combo[2], 0.5, nullptr, 0, false, false, { L"middlefather_0_7-2.wav" }, { L"middlefather_0_7-2.wav", L"middlefather_f_1.wav" }, 0.0, { L"middlefather_0_7-2.wav", L"middlefather_f_1-1.wav" } },
+			{ combo[3], 0.5, nullptr, 0, false, false, {}, { L"middlefather_ch_1.wav" }, 0.0, { L"middlefather_ch_1.wav" } },
+			{ combo[4], 0.6, nullptr, 0, false, false, { L"middlefather_0_8.wav" }, { L"middlefather_0_8.wav", L"middlefather_f_1.wav" }, 0.0, { L"middlefather_0_8.wav", L"middlefather_f_1.wav" } },
+			{ combo[5], 0.6, nullptr, 0, false, false, { L"middlefather_0_9-1.wav" }, { L"middlefather_0_9-1.wav", L"middlefather_ch_1.wav" }, 0.0, { L"middlefather_0_9-1.wav", L"middlefather_ch_1.wav" } },
 			// Stage-1 skill 6 uses the longer skill-2 combo pose timing for this final swing.
-			{ combo[6], 1.2, nullptr, 0, false, false, { L"middlefather_0_9-2.wav" }, { L"middlefather_0_9-2.wav", L"middlefather_f_1-1.wav" }, 0.55 },
+			{ combo[6], 1.2, nullptr, 0, false, false, { L"middlefather_0_9-2.wav" }, { L"middlefather_0_9-2.wav", L"middlefather_f_1-1.wav" }, 0.55, { L"middlefather_0_9-2.wav", L"middlefather_f_1-2.wav" } },
 			{ swordThrowPose(), 0.35, nullptr, 0, false, false, { L"middlefather_rl_1.wav" } }
 		}
 	}};
@@ -197,7 +198,7 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 		std::array<std::vector<SkillFrame>, 6> result{};
 		result[0] = { // 1. Lower, high kick, raise the sword, dash and cut down.
 			{ laevateinnReadyPose(), 0.2 }, { laevateinnHighKickPose(), 1.0 },
-			{ laevateinnSlashReadyPose(), 0.4},{combo[2], 0.45}
+			{ laevateinnSlashReadyPose(), 0.4},{combo[2], 0.75}
 		};
 		result[1] = { // 2. Two high kicks, one vertical kick, then two three-stab batches and retreat.
 			{ laevateinnReadyPose(), 0.1 }, { laevateinnHighKickPose(), 0.1 },
@@ -551,14 +552,18 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		? laevateinnSkillFrames()[skillIndex] : sealedSkillFrames()[skillIndex];
 	double actionStart = 0.0;
 	for (const SkillFrame& frame : actionFrames) {
-		if (animation.swordStageAtStart <= 1) {
+		if (animation.swordStageAtStart <= 2) {
 			const double soundEffectStart = actionStart
-				+ (animation.swordStageAtStart == 1 ? frame.stage1SoundEffectDelay : 0.0);
+				+ (animation.swordStageAtStart >= 1 ? frame.unsealedSoundEffectDelay : 0.0);
 			const bool enteringAtStart = soundEffectStart <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0;
 			const bool crossedActionStart = previousElapsed < soundEffectStart && animation.elapsed >= soundEffectStart;
 			if (enteringAtStart || crossedActionStart) {
 				const std::vector<const wchar_t*>& soundEffects = animation.swordStageAtStart == 0
-					? frame.soundEffectsOnEnter : frame.stage1SoundEffectsOnEnter;
+					? frame.soundEffectsOnEnter
+					: animation.swordStageAtStart == 1
+						? frame.stage1SoundEffectsOnEnter
+						: frame.stage2SoundEffectsOnEnter.empty()
+							? frame.stage1SoundEffectsOnEnter : frame.stage2SoundEffectsOnEnter;
 				for (const wchar_t* soundEffect : soundEffects) {
 					if (soundEffect) playSkillSoundEffect(app, soundEffect, now);
 				}
@@ -575,7 +580,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		}
 		actionStart += frame.duration;
 	}
-	if (animation.swordStageAtStart == 1 && skillIndex == 5) {
+	if ((animation.swordStageAtStart == 1 || animation.swordStageAtStart == 2) && skillIndex == 5) {
 		const auto crossedActionStart = [previousElapsed, &animation](double start) {
 			return (previousElapsed < start && animation.elapsed >= start)
 				|| (start <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0);
@@ -583,14 +588,41 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		if (crossedActionStart(unsealedSwordPullbackStart())
 			&& (animation.soundEffectCueMask & 0x1u) == 0) {
 			animation.soundEffectCueMask |= 0x1u;
-			playSkillSoundEffect(app, L"middlefather_rl_2.wav", now);
-			playSkillSoundEffect(app, L"middlefather_ch_1.wav", now);
+			if (animation.swordStageAtStart == 1) {
+				playSkillSoundEffect(app, L"middlefather_rl_2.wav", now);
+				playSkillSoundEffect(app, L"middlefather_ch_1.wav", now);
+			}
+			else {
+				playSkillSoundEffect(app, L"middlefather_ch_1.wav", now);
+				playSkillSoundEffect(app, L"middlefather_of_1.wav", now);
+			}
 		}
 		if (crossedActionStart(unsealedSwordReleasePoseStart())
 			&& (animation.soundEffectCueMask & 0x2u) == 0) {
 			animation.soundEffectCueMask |= 0x2u;
-			playSkillSoundEffect(app, L"middlefather_f_1.wav", now);
-			playSkillSoundEffect(app, L"middlefather_of_1.wav", now);
+			if (animation.swordStageAtStart == 1) {
+				playSkillSoundEffect(app, L"middlefather_f_1.wav", now);
+				playSkillSoundEffect(app, L"middlefather_of_1.wav", now);
+			}
+			else {
+				playSkillSoundEffect(app, L"middlefather_0_9-2.wav", now);
+				playSkillSoundEffect(app, L"middlefather_f_1-1.wav", now);
+			}
+		}
+		if (animation.swordStageAtStart == 2) {
+			const std::vector<SkillFrame>& comboFrames = sealedSkillFrames()[5];
+			double combo5Start = 0.0;
+			for (size_t frameIndex = 0; frameIndex < 5; ++frameIndex) {
+				combo5Start += comboFrames[frameIndex].duration;
+			}
+			const double combo6SoundStart = combo5Start + comboFrames[5].duration
+				+ comboFrames[6].unsealedSoundEffectDelay;
+			const double betweenCombo5And6 = (combo5Start + combo6SoundStart) * 0.5;
+			if (crossedActionStart(betweenCombo5And6)
+				&& (animation.soundEffectCueMask & 0x4u) == 0) {
+				animation.soundEffectCueMask |= 0x4u;
+				playSkillSoundEffect(app, L"middlefather_f_1-1.wav", now);
+			}
 		}
 	}
 	if (animation.swordStageAtStart == 3 && skillIndex == 5) {
@@ -631,7 +663,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		applyDash(retrievalStart, (retrievalDuration)/2, 10.0f);
 	}
 	else if (animation.swordStageAtStart == 3 && skillIndex == 4) {
-		applyDash(LAEVATEINN_SKILL5_DASH_START, 0.6, 6.0f);
+		applyDash(LAEVATEINN_SKILL5_DASH_START, 0.4, 12.0f);
 	}
 	else if (animation.swordStageAtStart != 3 && skillIndex == 4) {
 		// Skill 5's final horizontal kick is a one-second forward dash, not a pose offset.
