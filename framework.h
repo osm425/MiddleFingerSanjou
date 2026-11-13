@@ -1,6 +1,7 @@
 ﻿
 #pragma once
 
+// 프로젝트가 공유하는 표준 라이브러리와 OpenGL·GLFW·GLM 헤더를 모은다.
 #include "targetver.h"
 #define WIN32_LEAN_AND_MEAN       
 

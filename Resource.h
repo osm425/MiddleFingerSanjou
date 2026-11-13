@@ -2,6 +2,7 @@
 // Microsoft Visual C++에서 생성한 포함 파일입니다.
 // 다음에서 사용 MiddleFingerSanuou.rc
 
+// 아이콘·대화상자 등 리소스 파일에서 참조하는 정수 ID를 정의한다.
 #define IDS_APP_TITLE			103
 
 #define IDR_MAINFRAME			128

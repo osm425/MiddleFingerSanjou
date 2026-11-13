@@ -4,6 +4,7 @@
 #include <atomic>
 
 static constexpr float VESPA_MODEL_EXTENT = 4.5f;
+// 적의 크기·타격 범위, 캐릭터 접근 거리와 레바테인 동작 시간을 모은다.
 static constexpr float ENEMY_LOCKON_RADIUS = 5.0f;
 static constexpr float ENEMY_SKILL_HIT_RADIUS = 5.0f;
 static constexpr float ENEMY_LUNGE_DISTANCE = 1.2f;
@@ -13,7 +14,7 @@ static constexpr double LAEVATEINN_SKILL5_DASH_START = 0.12 + 0.5 + 0.5;
 static constexpr float LAEVATEINN_SKILL6_KIRA_FORWARD_OFFSET = 2.0f;
 static constexpr float LAEVATEINN_SKILL6_STOP_DISTANCE_FROM_KIRA = 2.5f;
 
-// Joint coordinates are local to the character root and can be updated by an animation later.
+// 캐릭터 기준 위치, 방향, 관절과 몸통·무기·망토 회전값을 저장한다.
 struct CharacterPose {
 	glm::vec3 rootPosition{ 0.35f, 0.0f, 0.0f };
 	float rootYaw = 0.0f;
@@ -38,7 +39,7 @@ struct CharacterPose {
 	glm::vec3 rightFootBase{ -0.60f, -3.2592f, 0.00f };
 };
 
-// X/Z values control the thickness of each segment; its length comes from the pose joints.
+// 관절 사이 길이는 자세에서 계산하고 X/Z 값으로 팔다리 굵기를 조정한다.
 struct CharacterRig {
 	glm::vec2 upperArmWidth{ 0.234f, 0.234f };
 	glm::vec2 lowerArmWidth{ 0.299f, 0.286f };
@@ -48,6 +49,7 @@ struct CharacterRig {
 	glm::vec2 rightLowerLegWidth{ 0.2145f, 0.208f };
 };
 
+// 현재 스킬 프레임, 이동·타격 상태, 던진 검의 비행 정보를 보관한다.
 struct SkillAnimationState {
 	int skillIndex = -1;
 	int swordStageAtStart = 0;
@@ -74,6 +76,7 @@ struct SkillAnimationState {
 	bool thrownSwordPlanted = false;
 };
 
+// 보이스 또는 효과음 한 개의 waveOut 장치와 샘플 재생 상태를 보관한다.
 struct VoicePlayback {
 	HWAVEOUT device = nullptr;
 	WAVEHDR header{};
@@ -88,8 +91,10 @@ struct VoicePlayback {
 	glm::vec3 sourcePosition{ 0.0f };
 };
 
+// 화면 전환과 ESC 확인창 상태를 구분하는 열거형이다.
 enum class Screen { Start, Main, ConfirmReturn, ConfirmExit };
 
+// 게임 한 세션의 렌더링, 입력, 캐릭터, 적, 오디오 상태를 모은다.
 struct App {
 	GLFWwindow* window = nullptr;
 	Canvas canvas;
@@ -143,6 +148,7 @@ struct App {
 	int framebufferHeight = 720;
 };
 
+// UI 버튼 좌표와 6개 스킬 아이콘의 화면 배치를 정의한다.
 static const Rect START_BUTTON{ 480, 526, 320, 72 };
 static const Rect MUSIC_TOGGLE_BUTTON{ 190, 356, 220, 52 };
 static const Rect VOICE_TOGGLE_BUTTON{ 530, 356, 220, 52 };
@@ -152,6 +158,7 @@ static const Rect CANCEL_RETURN_BUTTON{ 660, 438, 150, 58 };
 static const Rect CONFIRM_EXIT_BUTTON{ 470, 438, 150, 58 };
 static const Rect CANCEL_EXIT_BUTTON{ 660, 438, 150, 58 };
 
+// 스킬 배열 인덱스, 아이콘 프레임 번호와 화면 사각형을 연결한다.
 struct SkillSlot {
 	int skillIndex;
 	int frameIndex;
@@ -173,17 +180,21 @@ static constexpr double SKILL_COOLDOWN_SECONDS = 5.0;
 
 
 
+// 입력·스킬: 좌표 판정, 사용 가능 여부, 쿨타임과 시작·취소 처리를 담당한다.
 bool inside(float x, float y, const Rect& rect);
 bool skillAvailableForStage(int swordStage, int skillIndex);
 void activateSkill(App& app, int skillIndex, double now);
 void confirmReturnToStart(App& app);
 void cancelReturnConfirmation(App& app, double now);
+// 창 크기와 UI 좌표계 사이의 변환 및 키보드·마우스 콜백이다.
 void cursorToDesign(App& app, double x, double y, float& designX, float& designY);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void cursorPositionCallback(GLFWwindow* window, double x, double y);
+// 매 프레임 이동·애니메이션 갱신 및 오디오 재생 제어를 제공한다.
 void updateCharacterMovement(App& app, float deltaTime);
 void updateSkillAnimation(App& app, float deltaTime, double now);
+// 보이스와 효과음 파일의 재생·공간화·음량 조절·정지 인터페이스다.
 void playSkillVoice(App& app, const wchar_t* fileName, double now);
 void updateVoicePlayback(App& app);
 void stopVoicePlayback(App& app);
@@ -193,6 +204,7 @@ void setSkillSoundEffectVolume(App& app, const wchar_t* fileName, float gain);
 void stopSkillSoundEffect(App& app, const wchar_t* fileName);
 void updateSoundEffectPlayback(App& app);
 void stopSoundEffectPlayback(App& app);
+// 스킬 애니메이션 시간·검 궤적과 캐릭터 화면 출력 함수를 선언한다.
 double skillCooldownSeconds(int swordStage, int skillIndex);
 double skillAnimationSeconds(int skillIndex, int swordStage);
 double laevateinnSkill3ThrowTime();
@@ -210,4 +222,5 @@ glm::mat4 thrownSkillSwordTransform(const App& app);
 void drawMainScreen(App& app, double now);
 void drawReturnConfirmation(App& app);
 void drawExitConfirmation(App& app);
+// 실행 위치와 작업 폴더에서 게임 에셋 루트를 찾는다.
 fs::path findAssetRoot();

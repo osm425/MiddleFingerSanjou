@@ -3,11 +3,13 @@
 #include "RenderTypes.h"
 #include <memory>
 
+// 이미지와 글자 텍스처를 로드·캐시하고 사설 글꼴/WebP 디코더를 관리한다.
 class Assets {
 	using WebPDecodeBgra = uint8_t* (__cdecl*)(const uint8_t*, size_t, int*, int*);
 	using WebPFree = void (__cdecl*)(void*);
 
 public:
+	// 에셋 경로를 저장하고 KOTRA 글꼴·선택적 WebP 디코더를 초기화한다.
 	explicit Assets(fs::path root) : root_(std::move(root)) {
 		loadPrivateFont();
 
@@ -23,10 +25,12 @@ public:
 		}
 	}
 
+	// 객체가 소멸할 때 동적으로 연 WebP 라이브러리를 닫는다.
 	~Assets() {
 		if (webpModule_) FreeLibrary(webpModule_);
 	}
 
+	// PNG 등 GDI+ 지원 이미지를 읽고 BGRA 픽셀을 GPU 텍스처로 올린다.
 	Texture loadImage(const wchar_t* name) {
 		const fs::path path = root_ / name;
 		if (isWebpFile(path)) return loadWebp(path);
@@ -50,6 +54,7 @@ public:
 		return upload(static_cast<int>(width), static_cast<int>(height), pixels.data());
 	}
 
+	// 글자를 현재 폰트 우선순위로 래스터화하고 결과 텍스처를 캐시한다.
 	const Texture& text(const std::wstring& value, int fontSize, Tint color, bool bold = false) {
 		std::wostringstream keyStream;
 		keyStream << fontFamilyName_ << L'|' << value << L'|' << fontSize << L'|' << bold << L'|'
@@ -81,6 +86,7 @@ public:
 		return cacheText(rendered);
 	}
 
+	// 캐시된 텍스처와 사설 글꼴 리소스를 정리한다.
 	void release() {
 		for (GLuint texture : ownedTextures_) glDeleteTextures(1, &texture);
 		ownedTextures_.clear();
@@ -89,6 +95,7 @@ public:
 	}
 
 private:
+	// 프로젝트 내부 KOTRA_BOLD 폰트를 읽고 사용 가능 여부를 확인한다.
 	void loadPrivateFont() {
 		const fs::path fontPath = root_ / L"KOTRA_BOLD.ttf";
 		std::error_code fileError;
@@ -133,6 +140,7 @@ private:
 		privateFonts_ = std::move(collection);
 	}
 
+	// 선택된 글꼴로 문자열을 비트맵에 그린 뒤 텍스처로 업로드한다.
 	Texture rasterizeText(const std::wstring& value, int fontSize, Tint color, bool bold,
 		const Gdiplus::FontFamily* family) {
 		if (!family) return {};
@@ -176,6 +184,7 @@ private:
 		return upload(width, height, pixels.data());
 	}
 
+	// 파일 헤더를 확인해 WebP 형식인지 판별한다.
 	static bool isWebpFile(const fs::path& path) {
 		std::ifstream input(path, std::ios::binary);
 		char header[12]{};
@@ -183,6 +192,7 @@ private:
 		return std::memcmp(header, "RIFF", 4) == 0 && std::memcmp(header + 8, "WEBP", 4) == 0;
 	}
 
+	// 동적 WebP 라이브러리로 이미지를 디코딩하고 GPU 텍스처로 만든다.
 	Texture loadWebp(const fs::path& path) {
 		if (!webpDecodeBgra_ || !webpFree_) return {};
 		std::ifstream input(path, std::ios::binary | std::ios::ate);
@@ -205,6 +215,7 @@ private:
 		return texture;
 	}
 
+	// BGRA 픽셀 데이터를 OpenGL 텍스처로 올리고 소유 목록에 등록한다.
 	Texture upload(int width, int height, const unsigned char* bgra) {
 		Texture texture{};
 		texture.width = width;

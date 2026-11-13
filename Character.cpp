@@ -2,6 +2,7 @@
 
 
 
+// 모델의 기본 Y축을 지정한 방향에 맞추는 회전 행렬을 만든다.
 static glm::mat4 alignPositiveY(const glm::vec3& direction) {
 	const glm::vec3 sourceAxis(0.0f, 1.0f, 0.0f);
 	const glm::vec3 targetAxis = glm::normalize(direction);
@@ -12,6 +13,7 @@ static glm::mat4 alignPositiveY(const glm::vec3& direction) {
 	return glm::rotate(glm::mat4(1.0f), std::acos(cosine), axis);
 }
 
+// 관절 두 점에 모델 구간을 맞추고 X/Z 굵기와 길이를 조정한다.
 static glm::mat4 boneTransform(const glm::vec3& upperJoint, const glm::vec3& lowerJoint,
 	const glm::vec3& localUpperAnchor, const glm::vec3& localLowerAnchor,
 	const glm::vec2& crossSectionScale, const glm::vec3& characterForward) {
@@ -39,6 +41,7 @@ static glm::mat4 boneTransform(const glm::vec3& upperJoint, const glm::vec3& low
 		* rotation * glm::scale(glm::mat4(1.0f), scale);
 }
 
+// 검 손잡이 기준점을 캐릭터 등 뒤의 장착 위치에 맞춘다.
 static glm::mat4 backSwordTransform(const ObjModel& sword, const glm::mat4& rootTransform) {
 	// The grip rests above the character's left shoulder, with the blade angled down across the back.
 	const glm::vec3 gripPosition(0.48f, 1.12f, -1.0f);
@@ -50,6 +53,7 @@ static glm::mat4 backSwordTransform(const ObjModel& sword, const glm::mat4& root
 	return rootTransform * localTransform;
 }
 
+// 검 손잡이 기준점을 애니메이션 중인 왼손에 맞춘다.
 static glm::mat4 handSwordTransform(const ObjModel& sword, const glm::mat4& rootTransform,
 	const CharacterPose& pose) {
 	// Keep the grip at the animated hand; use a supplied local direction or follow the forearm.
@@ -66,16 +70,19 @@ static glm::mat4 handSwordTransform(const ObjModel& sword, const glm::mat4& root
 	return rootTransform * localTransform;
 }
 
+// 모델 변환 행렬을 한 점에 적용해 월드 좌표를 구한다.
 static glm::vec3 transformPoint(const glm::mat4& transform, const glm::vec3& point) {
 	return glm::vec3(transform * glm::vec4(point, 1.0f));
 }
 
+// 벡터를 캐릭터 로컬 X축 주위로 회전한다.
 static glm::vec3 rotateAroundLocalX(const glm::vec3& vector, float angle) {
 	const float cosine = std::cos(angle);
 	const float sine = std::sin(angle);
 	return glm::vec3(vector.x, vector.y * cosine - vector.z * sine, vector.y * sine + vector.z * cosine);
 }
 
+// 3D 점을 화면 좌표로 투영하고 카메라 앞에 있는지 확인한다.
 static bool projectToDesign(const glm::vec3& point, const glm::mat4& viewProjection, glm::vec2& output) {
 	const glm::vec4 clip = viewProjection * glm::vec4(point, 1.0f);
 	if (clip.w <= 0.001f) return false;
@@ -89,6 +96,7 @@ static bool projectToDesign(const glm::vec3& point, const glm::mat4& viewProject
 // Shared vertices around the open cut boundary in Ki.obj and Ra.obj.
 static const glm::vec3 KIRA_CUT_JOIN_SOURCE(-0.03792675f, 2.53850525f, -1.6860115f);
 
+// 달리기 주기에 맞춰 팔·다리 관절의 표시용 자세를 계산한다.
 CharacterPose animatedCharacterPose(const App& app) {
 	if (skillAnimationActive(app)) return animatedSkillPose(app);
 	const CharacterPose& base = app.characterPose;
@@ -120,6 +128,7 @@ CharacterPose animatedCharacterPose(const App& app) {
 	return animated;
 }
 
+// 바닥, 그림자, 적, 캐릭터와 무기 및 스킬 UI를 메인 화면에 그린다.
 void drawMainScreen(App& app, double now) {
 	Canvas& canvas = app.canvas;
 	canvas.rect(0, 0, 1280, 720, rgba(9, 10, 15));

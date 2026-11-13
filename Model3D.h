@@ -2,20 +2,24 @@
 
 #include "RenderTypes.h"
 
+// OBJ 파서가 삼각형으로 펼쳐 렌더링하는 위치·노멀·UV 정점 형식이다.
 struct ObjVertex {
 	glm::vec3 position;
 	glm::vec3 normal;
 	glm::vec2 texcoord;
 };
 
+// OBJ face에서 정점·UV·노멀 배열을 가리키는 인덱스 묶음이다.
 struct ObjReference {
 	int position = -1;
 	int texcoord = -1;
 	int normal = -1;
 };
 
+// OBJ 메시를 로드하고 텍스처·광원·기울어진 그림자를 렌더링한다.
 class ObjModel {
 public:
+	// OBJ 면을 삼각형으로 변환하고 크기 보정 뒤 GPU 버퍼를 만든다.
 	bool load(const fs::path& path, const Texture& albedoTexture,
 		const glm::vec3& defaultColor = glm::vec3(0.78f, 0.68f, 0.55f),
 		float targetExtent = 4.4f, float fixedModelScale = 0.0f) {
@@ -221,6 +225,7 @@ void main() {
 		return true;
 	}
 
+	// 메시 그림자를 먼저 그리고 카메라 기준으로 조명된 모델을 그린다.
 	void draw(float aspect, float cameraYaw, float cameraPitch, const glm::vec3& cameraTarget, const glm::mat4& modelTransform) const {
 		if (!program_ || !vao_ || vertexCount_ == 0) return;
 		const glm::vec3 cameraPosition = sceneCameraPosition(cameraTarget, cameraYaw, cameraPitch);
@@ -252,17 +257,22 @@ void main() {
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount_);
 	}
 
+	// GPU 메시가 정상적으로 준비됐는지 확인한다.
 	bool loaded() const { return program_ && vao_ && vertexCount_ > 0; }
+	// 원점 기준으로 크기 보정된 모델의 위쪽·아래쪽 기준점을 반환한다.
 	glm::vec3 upperOriginAnchor() const { return { localOrigin_.x, localBoundsMax_.y, localOrigin_.z }; }
 	glm::vec3 lowerOriginAnchor() const { return { localOrigin_.x, localBoundsMin_.y, localOrigin_.z }; }
+	// OBJ 정점의 중심·크기 보정값을 외부 배치 코드에 제공한다.
 	float modelScale() const { return modelScale_; }
 	glm::vec3 sourceCenter() const { return sourceCenter_; }
 	glm::vec3 scaledSourceCenter() const { return sourceCenter_ * modelScale_; }
+	// 검 모델의 손잡이 기준점을 하단에서부터 추정해 반환한다.
 	glm::vec3 swordGripAnchor() const {
 		const float handleOffset = (localBoundsMax_.y - localBoundsMin_.y) * 0.13f;
 		return { localOrigin_.x, localBoundsMin_.y + handleOffset, localOrigin_.z };
 	}
 
+	// 모델 메시와 셰이더가 사용하는 GPU 자원을 해제한다.
 	void release() {
 		if (vbo_) glDeleteBuffers(1, &vbo_);
 		if (vao_) glDeleteVertexArrays(1, &vao_);
@@ -285,8 +295,10 @@ private:
 	float modelScale_ = 1.0f;
 };
 
+// 필드 바닥과 캐릭터 발 높이에 반응하는 부드러운 그림자를 관리한다.
 class GroundPlane {
 public:
+	// 바닥 메시·셰이더를 준비하고 그림자 메시 생성을 요청한다.
 	bool initialize() {
 		static const char* vertexSource = R"GLSL(
 #version 330 core
@@ -348,6 +360,7 @@ void main() {
 		return true;
 	}
 
+	// 카메라 투영을 적용해 필드 바닥을 화면에 그린다.
 	void draw(float aspect, float cameraYaw, float cameraPitch, const glm::vec3& cameraTarget) const {
 		if (!program_ || !vao_) return;
 		const glm::mat4 modelTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, FIELD_Y, 0.0f))
@@ -363,6 +376,7 @@ void main() {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
+	// 캐릭터 발 높이에 따라 크기와 농도가 바뀌는 바닥 그림자를 그린다.
 	void drawShadow(float aspect, float cameraYaw, float cameraPitch, const glm::vec3& cameraTarget,
 		const glm::vec3& characterPosition, float characterYaw, float footClearance) const {
 		if (!shadowProgram_ || !shadowVao_) return;
@@ -392,6 +406,7 @@ void main() {
 		glDepthMask(GL_TRUE);
 	}
 
+	// 바닥·그림자 렌더링 자원을 모두 해제한다.
 	void release() {
 		if (vbo_) glDeleteBuffers(1, &vbo_);
 		if (vao_) glDeleteVertexArrays(1, &vao_);
@@ -405,6 +420,7 @@ void main() {
 	}
 
 private:
+	// 페이드 가장자리를 가진 원형 그림자 메시와 셰이더를 만든다.
 	void initializeShadow() {
 		static const char* vertexSource = R"GLSL(
 #version 330 core

@@ -1,16 +1,19 @@
 ﻿#include "GameState.h"
 
 
+// 글자 텍스처를 지정한 위치에 출력한다.
 void drawText(Canvas& canvas, Assets& assets, const std::wstring& value, int size, Tint color, float x, float y, bool bold) {
 	const Texture& texture = assets.text(value, size, color, bold);
 	canvas.image(texture, x, y, static_cast<float>(texture.width), static_cast<float>(texture.height));
 }
 
+// 지정한 중심 X 좌표를 기준으로 글자를 가운데 정렬해 출력한다.
 void drawCentered(Canvas& canvas, Assets& assets, const std::wstring& value, int size, Tint color, float centerX, float y, bool bold) {
 	const Texture& texture = assets.text(value, size, color, bold);
 	canvas.image(texture, centerX - texture.width * 0.5f, y, static_cast<float>(texture.width), static_cast<float>(texture.height));
 }
 
+// 배경 이미지와 시작 버튼으로 시작 화면을 그린다.
 void drawStartScreen(App& app) {
 	Canvas& canvas = app.canvas;
 	Assets& assets = *app.assets;
@@ -22,6 +25,7 @@ void drawStartScreen(App& app) {
 	drawCentered(canvas, assets, L"게임 시작", 29, rgba(250, 236, 215), START_BUTTON.x + START_BUTTON.w * 0.5f, START_BUTTON.y + 17, true);
 }
 
+// 현재 검 단계와 스킬 번호에 맞는 툴팁 이름을 반환한다.
 static const wchar_t* skillDisplayName(int swordStage, int skillIndex) {
 	static constexpr const wchar_t* names[4][6] = {
 		{ L"짓밟기", L"고작 이거에 부서지지 말라고!", L"원한 스탬핑", L"걷어차기", L"규칙 위반", L"포장 하나 뜯는다!" },
@@ -33,6 +37,7 @@ static const wchar_t* skillDisplayName(int swordStage, int skillIndex) {
 	return names[swordStage][skillIndex];
 }
 
+// 스킬 아이콘 옆에 해당 스킬의 키패드 번호를 표시한다.
 static void drawSkillKeyLabel(Canvas& canvas, Assets& assets, const SkillSlot& slot) {
 	constexpr float labelWidth = 22.0f;
 	constexpr float labelHeight = 28.0f;
@@ -44,6 +49,7 @@ static void drawSkillKeyLabel(Canvas& canvas, Assets& assets, const SkillSlot& s
 		static_cast<float>(number.width), static_cast<float>(number.height));
 }
 
+// 마우스가 아이콘 위에 있을 때 스킬 이름 상자를 표시한다.
 static void drawSkillHoverName(App& app, const SkillSlot& slot) {
 	if (app.hoveredSkillIndex != slot.skillIndex) return;
 	const wchar_t* name = skillDisplayName(app.swordStage, slot.skillIndex);
@@ -69,6 +75,7 @@ static void drawSkillHoverName(App& app, const SkillSlot& slot) {
 		boxY + (boxHeight - text->height) * 0.5f, static_cast<float>(text->width), static_cast<float>(text->height));
 }
 
+// 아이콘, 번호, 이름, 쿨타임 덮개를 포함해 스킬 슬롯 하나를 그린다.
 void drawSkillIcon(App& app, const SkillSlot& slot, double now) {
 	if (!skillAvailableForStage(app.swordStage, slot.skillIndex)) return;
 	Canvas& canvas = app.canvas;
@@ -106,6 +113,7 @@ void drawSkillIcon(App& app, const SkillSlot& slot, double now) {
 		bounds.y + bounds.h * 0.5f - 13, true);
 }
 
+// 게임 복귀 확인창과 음악·보이스·효과음 설정을 그린다.
 void drawReturnConfirmation(App& app) {
 	Canvas& canvas = app.canvas;
 	Assets& assets = *app.assets;
@@ -129,6 +137,7 @@ void drawReturnConfirmation(App& app) {
 	drawCentered(canvas, assets, L"취소", 22, rgba(240, 240, 240), CANCEL_RETURN_BUTTON.x + CANCEL_RETURN_BUTTON.w * 0.5f, CANCEL_RETURN_BUTTON.y + 17, true);
 }
 
+// 프로그램 종료 확인창과 음악·보이스·효과음 설정을 그린다.
 void drawExitConfirmation(App& app) {
 	Canvas& canvas = app.canvas;
 	Assets& assets = *app.assets;

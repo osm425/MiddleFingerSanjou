@@ -2,27 +2,32 @@
 #include <cstdint>
 #include <cstring>
 
+// 화면 좌표가 버튼이나 UI 사각형 안에 들어오는지 판정한다.
 bool inside(float x, float y, const Rect& rect) {
 	return x >= rect.x && y >= rect.y && x <= rect.x + rect.w && y <= rect.y + rect.h;
 }
 
+// 숫자열 또는 숫자 키패드 입력을 스킬 배열 인덱스로 바꾼다.
 static int skillIndexForKey(int key) {
 	if (key >= GLFW_KEY_1 && key <= GLFW_KEY_6) return key - GLFW_KEY_1;
 	if (key >= GLFW_KEY_KP_1 && key <= GLFW_KEY_KP_6) return key - GLFW_KEY_KP_1;
 	return -1;
 }
 
+// 디버그 숫자 입력을 검 단계 인덱스로 바꾼다.
 static int swordStageForDebugKey(int key) {
 	if (key >= GLFW_KEY_1 && key <= GLFW_KEY_4) return key - GLFW_KEY_1;
 	if (key >= GLFW_KEY_KP_1 && key <= GLFW_KEY_KP_4) return key - GLFW_KEY_KP_1;
 	return -1;
 }
 
+// 현재 검 단계에서 해당 스킬을 사용할 수 있는지 확인한다.
 bool skillAvailableForStage(int swordStage, int skillIndex) {
 	if (swordStage < 0 || swordStage > 3 || skillIndex < 0 || skillIndex >= 6) return false;
 	return !(swordStage == 3 && skillIndex == 3);
 }
 
+// 검 단계와 스킬 번호에 해당하는 쿨타임을 초 단위로 반환한다.
 double skillCooldownSeconds(int swordStage, int skillIndex) {
 	static constexpr std::array<double, 6> sealedSwordCooldowns = { 4.0, 6.0, 8.0, 3.0, 5.0, 10.0 };
 	static constexpr std::array<double, 6> laevateinnCooldowns = { 4.0, 8.0, 15.0, 0.0, 5.0, 16.0 };
@@ -34,12 +39,14 @@ double skillCooldownSeconds(int swordStage, int skillIndex) {
 	return SKILL_COOLDOWN_SECONDS;
 }
 
+// waveOut이 재생 완료를 알리면 슬롯을 완료 상태로 표시한다.
 static void CALLBACK voicePlaybackCallback(HWAVEOUT, UINT message, DWORD_PTR instance, DWORD_PTR, DWORD_PTR) {
 	if (message != WOM_DONE || !instance) return;
 	auto* playback = reinterpret_cast<VoicePlayback*>(instance);
 	playback->completed.store(true, std::memory_order_release);
 }
 
+// 재생 장치를 닫고, 필요하면 현재 소리를 먼저 중단한다.
 static void closeVoicePlaybackDevice(VoicePlayback& playback, bool stop) {
 	if (playback.device) {
 		if (stop) waveOutReset(playback.device);
@@ -52,6 +59,7 @@ static void closeVoicePlaybackDevice(VoicePlayback& playback, bool stop) {
 	playback.header = {};
 }
 
+// 재생 장치와 샘플 버퍼를 해제하고 슬롯 상태를 초기화한다.
 static void releaseVoicePlayback(VoicePlayback& playback, bool stop) {
 	closeVoicePlaybackDevice(playback, stop);
 	playback.audioData.clear();
@@ -65,6 +73,7 @@ static void releaseVoicePlayback(VoicePlayback& playback, bool stop) {
 	playback.sourcePosition = glm::vec3(0.0f);
 }
 
+// RIFF/WAVE 파일에서 PCM 형식 정보와 오디오 샘플을 읽는다.
 static bool readPcmWave(const fs::path& path, WAVEFORMATEX& format, std::vector<char>& samples) {
 	std::ifstream input(path, std::ios::binary);
 	char container[4]{}, waveId[4]{};
@@ -107,6 +116,7 @@ static bool readPcmWave(const fs::path& path, WAVEFORMATEX& format, std::vector<
 		&& format.nChannels > 0 && format.nSamplesPerSec > 0 && format.nBlockAlign > 0 && !samples.empty();
 }
 
+// 준비된 샘플 버퍼를 waveOut 장치에 연결해 재생한다.
 static bool openVoicePlaybackDevice(VoicePlayback& playback) {
 	playback.completed.store(false, std::memory_order_release);
 	const MMRESULT opened = waveOutOpen(&playback.device, WAVE_MAPPER, &playback.format,
@@ -123,6 +133,7 @@ static bool openVoicePlaybackDevice(VoicePlayback& playback) {
 	return true;
 }
 
+// 끝난 보이스 재생 슬롯을 프레임 갱신 중 정리한다.
 void updateVoicePlayback(App& app) {
 	for (VoicePlayback& playback : app.voicePlayback) {
 		if (playback.device && playback.completed.load(std::memory_order_acquire)) {
@@ -131,10 +142,12 @@ void updateVoicePlayback(App& app) {
 	}
 }
 
+// 진행 중인 보이스를 모두 중단하고 슬롯을 비운다.
 void stopVoicePlayback(App& app) {
 	for (VoicePlayback& playback : app.voicePlayback) releaseVoicePlayback(playback, true);
 }
 
+// 키라 모델의 배치 규칙에 맞춰 공간 음향의 발생 위치를 구한다.
 static glm::vec3 kiraSoundSourcePosition(const App& app) {
 	glm::vec3 towardEnemy = app.enemyPosition - app.characterPose.rootPosition;
 	towardEnemy.y = 0.0f;
@@ -143,6 +156,7 @@ static glm::vec3 kiraSoundSourcePosition(const App& app) {
 	return app.enemyPosition - towardEnemy * LAEVATEINN_SKILL6_KIRA_FORWARD_OFFSET;
 }
 
+// 효과음 PCM 데이터에 개별 음량과 키라 기준 좌우·거리 감쇠를 입힌다.
 static void renderSoundEffectSamples(VoicePlayback& playback, const App& app) {
 	// Apply per-sound gain and pan to PCM samples; waveOutSetVolume affects unrelated streams too.
 	playback.outputData = playback.audioData;
@@ -182,6 +196,7 @@ static void renderSoundEffectSamples(VoicePlayback& playback, const App& app) {
 	}
 }
 
+// 완료된 효과음 재생 슬롯을 정리한다.
 void updateSoundEffectPlayback(App& app) {
 	for (VoicePlayback& playback : app.soundEffectPlayback) {
 		if (playback.device && playback.completed.load(std::memory_order_acquire)) {
@@ -190,16 +205,19 @@ void updateSoundEffectPlayback(App& app) {
 	}
 }
 
+// 활성화된 모든 효과음을 중단한다.
 void stopSoundEffectPlayback(App& app) {
 	for (VoicePlayback& playback : app.soundEffectPlayback) releaseVoicePlayback(playback, true);
 }
 
+// 파일 이름이 일치하는 특정 효과음만 중단한다.
 void stopSkillSoundEffect(App& app, const wchar_t* fileName) {
 	for (VoicePlayback& playback : app.soundEffectPlayback) {
 		if (playback.device && playback.fileName == fileName) releaseVoicePlayback(playback, true);
 	}
 }
 
+// 특정 효과음의 남은 구간을 새 음량으로 이어 재생한다.
 void setSkillSoundEffectVolume(App& app, const wchar_t* fileName, float gain) {
 	for (VoicePlayback& playback : app.soundEffectPlayback) {
 		if (playback.device && playback.fileName == fileName) {
@@ -224,6 +242,7 @@ void setSkillSoundEffectVolume(App& app, const wchar_t* fileName, float gain) {
 	}
 }
 
+// 효과음 파일을 불러와 재생 슬롯을 배정하고 일반/공간 재생을 시작한다.
 static void playSkillSoundEffectInternal(App& app, const wchar_t* fileName, double now,
 	bool spatialized, float gain) {
 	if (!app.soundEffectsEnabled) return;
@@ -259,14 +278,17 @@ static void playSkillSoundEffectInternal(App& app, const wchar_t* fileName, doub
 	}
 }
 
+// 지정한 효과음을 중심 음량으로 재생한다.
 void playSkillSoundEffect(App& app, const wchar_t* fileName, double now) {
 	playSkillSoundEffectInternal(app, fileName, now, false, 1.0f);
 }
 
+// 키라 위치를 기준으로 좌우감과 거리에 따른 음량을 적용해 재생한다.
 void playSpatialSkillSoundEffect(App& app, const wchar_t* fileName, double now) {
 	playSkillSoundEffectInternal(app, fileName, now, true, 1.0f);
 }
 
+// 보이스 설정이 켜져 있을 때 스킬 음성 파일을 재생 슬롯에 올린다.
 void playSkillVoice(App& app, const wchar_t* fileName, double now) {
 	if (!app.voiceEnabled) return;
 	const fs::path path = app.assetRoot / L"voice" / fileName;
@@ -297,6 +319,7 @@ void playSkillVoice(App& app, const wchar_t* fileName, double now) {
 	}
 }
 
+// 입력된 스킬의 사용 가능 여부를 확인하고 단계별 애니메이션을 시작한다.
 void activateSkill(App& app, int skillIndex, double now) {
 	if (!skillAvailableForStage(app.swordStage, skillIndex)) return;
 	if (skillAnimationActive(app) || app.cooldownEndsAt[skillIndex] > now) return;
@@ -394,6 +417,7 @@ void activateSkill(App& app, int skillIndex, double now) {
 	}
 }
 
+// 처음 화면으로 돌아가며 쿨타임·애니메이션·캐릭터 상태를 초기화한다.
 void confirmReturnToStart(App& app) {
 	app.cooldownEndsAt.fill(0.0);
 	app.cooldownDurations.fill(0.0);
@@ -413,6 +437,7 @@ void confirmReturnToStart(App& app) {
 }
 
 
+// 복귀를 취소하고 확인창이 떠 있던 시간만큼 쿨타임 기준을 보정한다.
 void cancelReturnConfirmation(App& app, double now) {
 	const double pausedDuration = std::max(0.0, now - app.pauseStartedAt);
 	for (double& cooldownEnd : app.cooldownEndsAt) {
@@ -422,12 +447,14 @@ void cancelReturnConfirmation(App& app, double now) {
 	app.screen = Screen::Main;
 }
 
+// 창 커서 좌표를 고정된 UI 디자인 좌표계로 변환한다.
 void cursorToDesign(App& app, double x, double y, float& designX, float& designY) {
 	int windowWidth = 1, windowHeight = 1;
 	glfwGetWindowSize(app.window, &windowWidth, &windowHeight);
 	app.canvas.toDesign(x, y, windowWidth, windowHeight, designX, designY);
 }
 
+// 시작·확인 화면, 스킬 단축키와 검 단계 디버그 입력을 처리한다.
 void keyCallback(GLFWwindow* window, int key, int, int action, int mods) {
 	if (action != GLFW_PRESS) return;
 	App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
@@ -477,6 +504,7 @@ void keyCallback(GLFWwindow* window, int key, int, int action, int mods) {
 	}
 }
 
+// 마우스 클릭의 UI 동작과 카메라 드래그 시작·종료를 처리한다.
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int) {
 	if (button != GLFW_MOUSE_BUTTON_LEFT) return;
 	App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
@@ -535,6 +563,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int) {
 	}
 }
 
+// 드래그 중 카메라 각도를 갱신하고 스킬 아이콘 호버 상태를 계산한다.
 void cursorPositionCallback(GLFWwindow* window, double x, double y) {
 	App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
 	if (!app) return;
@@ -567,6 +596,7 @@ void cursorPositionCallback(GLFWwindow* window, double x, double y) {
 	app->lastCameraDragY = designY;
 }
 
+// WASD 이동과 달리기 전환, 스킬 애니메이션 및 카메라 추적을 갱신한다.
 void updateCharacterMovement(App& app, float deltaTime) {
 	if (app.screen != Screen::Main || deltaTime <= 0.0f) return;
 	if (skillAnimationActive(app)) {
@@ -616,6 +646,7 @@ void updateCharacterMovement(App& app, float deltaTime) {
 	}
 }
 
+// 프레임버퍼 크기 변경 시 화면 표시 영역과 Canvas 크기를 갱신한다.
 void framebufferCallback(GLFWwindow* window, int width, int height) {
 	App* app = static_cast<App*>(glfwGetWindowUserPointer(window));
 	if (!app) return;

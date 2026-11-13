@@ -2,8 +2,10 @@
 
 #include "RenderTypes.h"
 
+// 고정된 1280x720 디자인 좌표계에서 2D UI와 일부 3D 영역을 그린다.
 class Canvas {
 public:
+	// 셰이더와 사각형 그리기에 필요한 OpenGL 버퍼를 준비한다.
 	bool initialize() {
 		program_ = makeUiProgram();
 		if (!program_) return false;
@@ -20,6 +22,7 @@ public:
 		return true;
 	}
 
+	// 창 크기에 맞춰 UI의 축척과 가운데 정렬 여백을 다시 계산한다.
 	void resize(int width, int height) {
 		frameWidth_ = std::max(1, width);
 		frameHeight_ = std::max(1, height);
@@ -28,6 +31,7 @@ public:
 		offsetY_ = (frameHeight_ - 720.0f * scale_) * 0.5f;
 	}
 
+	// UI 렌더링을 시작하고 viewport·blend·셰이더 상태를 설정한다.
 	void begin() {
 		glViewport(0, 0, frameWidth_, frameHeight_);
 		glDisable(GL_DEPTH_TEST);
@@ -42,16 +46,19 @@ public:
 		glBindVertexArray(vao_);
 	}
 
+	// UI 렌더링 종료 후 공유 OpenGL 상태를 정리한다.
 	void end() {
 		glBindVertexArray(0);
 		glUseProgram(0);
 		glDisable(GL_SCISSOR_TEST);
 	}
 
+	// 단색 사각형을 그린다.
 	void rect(float x, float y, float w, float h, Tint color) {
 		quad(x, y, w, h, color, 0, false);
 	}
 
+	// 두 점을 잇는 두께 있는 선을 사각형 삼각형으로 그린다.
 	void line(float x1, float y1, float x2, float y2, float width, Tint color) {
 		const float dx = x2 - x1;
 		const float dy = y2 - y1;
@@ -84,6 +91,7 @@ public:
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
+	// 모서리가 둥근 사각형을 직사각형과 원호 조각으로 그린다.
 	void roundedRect(float x, float y, float w, float h, float radius, Tint color) {
 		if (w <= 0.0f || h <= 0.0f) return;
 		const float r = std::clamp(radius, 0.0f, std::min(w, h) * 0.5f);
@@ -101,6 +109,7 @@ public:
 		sector(x + r, y + h - r, r, quarterTurn, quarterTurn, color);
 	}
 
+	// 지정한 각도 구간의 원형 부채꼴을 그린다.
 	void sector(float centerX, float centerY, float radius, float startAngle, float sweepAngle, Tint color) {
 		if (radius <= 0.0f || std::abs(sweepAngle) < 0.0001f) return;
 		const int segments = std::max(1, static_cast<int>(std::ceil(std::abs(sweepAngle) * radius * scale_ / 3.0f)));
@@ -131,10 +140,12 @@ public:
 		glDrawArrays(GL_TRIANGLE_FAN, 0, segments + 2);
 	}
 
+	// 텍스처를 지정한 UI 사각형에 배치한다.
 	void image(const Texture& texture, float x, float y, float w, float h, Tint tint = { 1, 1, 1, 1 }) {
 		if (texture.id) quad(x, y, w, h, tint, texture.id, true);
 	}
 
+	// 텍스처 비율을 보존하면서 화면 viewport를 빈틈없이 덮는다.
 	void imageCoverViewport(const Texture& texture) {
 		if (!texture.id || texture.width <= 0 || texture.height <= 0) return;
 		const float designWidth = frameWidth_ / scale_;
@@ -151,6 +162,7 @@ public:
 			drawHeight);
 	}
 
+	// 별도 마스크 텍스처의 지정 영역으로 이미지를 잘라 그린다.
 	void imageMasked(const Texture& texture, const Texture& mask, float x, float y, float w, float h,
 		const Rect& maskBounds, Tint tint = { 1, 1, 1, 1 }) {
 		if (!texture.id || !mask.id || maskBounds.w <= 0.0f || maskBounds.h <= 0.0f) return;
@@ -159,6 +171,7 @@ public:
 			(x - maskBounds.x) / maskBounds.w, (y - maskBounds.y) / maskBounds.h);
 	}
 
+	// UI 렌더링을 지정한 사각형 범위로 자른다.
 	void clipTo(Rect rect) {
 		const int x = static_cast<int>(std::floor(offsetX_ + rect.x * scale_));
 		const int y = static_cast<int>(std::floor(frameHeight_ - (offsetY_ + (rect.y + rect.h) * scale_)));
@@ -168,8 +181,10 @@ public:
 		glScissor(x, y, w, h);
 	}
 
+	// 앞서 설정한 UI 자르기 상태를 해제한다.
 	void endClip() { glDisable(GL_SCISSOR_TEST); }
 
+	// 지정 사각형에 3D viewport와 깊이 버퍼를 설정한다.
 	void begin3D(Rect rect) {
 		const int x = static_cast<int>(std::floor(offsetX_ + rect.x * scale_));
 		const int y = static_cast<int>(std::floor(frameHeight_ - (offsetY_ + (rect.y + rect.h) * scale_)));
@@ -182,6 +197,7 @@ public:
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
 
+	// 3D viewport를 끝내고 UI viewport와 렌더링 상태를 복구한다.
 	void end3D() {
 		glDisable(GL_SCISSOR_TEST);
 		glDisable(GL_DEPTH_TEST);
@@ -191,6 +207,7 @@ public:
 		glBindVertexArray(vao_);
 	}
 
+	// 실제 창 커서 좌표를 UI 디자인 좌표로 변환한다.
 	void toDesign(double cursorX, double cursorY, int windowWidth, int windowHeight, float& x, float& y) const {
 		const float px = static_cast<float>(cursorX) * frameWidth_ / std::max(1, windowWidth);
 		const float py = static_cast<float>(cursorY) * frameHeight_ / std::max(1, windowHeight);
@@ -198,6 +215,7 @@ public:
 		y = (py - offsetY_) / std::max(0.001f, scale_);
 	}
 
+	// Canvas가 소유한 OpenGL 버퍼와 셰이더를 해제한다.
 	void release() {
 		if (vbo_) glDeleteBuffers(1, &vbo_);
 		if (vao_) glDeleteVertexArrays(1, &vao_);
@@ -206,6 +224,7 @@ public:
 	}
 
 private:
+	// 색상·텍스처·마스크를 적용한 사각형 두 개의 삼각형을 그린다.
 	void quad(float x, float y, float w, float h, Tint color, GLuint texture, bool textured,
 		GLuint maskTexture = 0, float maskScaleX = 1.0f, float maskScaleY = 1.0f,
 		float maskOffsetX = 0.0f, float maskOffsetY = 0.0f) {

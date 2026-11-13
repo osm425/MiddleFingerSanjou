@@ -1,5 +1,6 @@
 ﻿#include "GameState.h"
 
+// 실행 파일 위치와 작업 폴더를 바탕으로 게임 에셋 폴더를 찾는다.
 fs::path findAssetRoot() {
 	wchar_t path[MAX_PATH]{};
 	GetModuleFileNameW(nullptr, path, MAX_PATH);

@@ -4,6 +4,7 @@
 #pragma comment(lib, "winmm.lib")
 
 
+// GLFW 창과 OpenGL 3.3 렌더링 문맥을 준비한다.
 GLFWwindow* createOpenGLWindow(int width, int height, const char* title) {
 	if (!glfwInit()) return nullptr;
 
@@ -33,6 +34,7 @@ GLFWwindow* createOpenGLWindow(int width, int height, const char* title) {
 }
 
 
+// 프로그램 초기화, 게임 루프, 리소스 정리를 담당하는 진입 함수다.
 int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	GLFWwindow* window = createOpenGLWindow(1280, 720, "Middle Finger Sanjou - UI Prototype");
 	if (!window) {
@@ -176,6 +178,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	Screen musicScreen = Screen::Start;
 	bool musicPlaying = false;
 	bool previousMusicEnabled = false;
+	// 화면과 설정 상태에 맞춰 배경 음악을 시작하거나 멈춘다.
 	auto updateBackgroundMusic = [&]() {
 		Screen requestedScreen = musicScreen;
 		if (app.screen == Screen::Start || app.screen == Screen::Main) requestedScreen = app.screen;
@@ -201,6 +204,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	};
 	updateBackgroundMusic();
 
+	// 입력 처리, 게임 상태 갱신, 화면 그리기를 프레임마다 반복한다.
 	double previousFrameTime = glfwGetTime();
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -237,6 +241,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 		glfwSwapBuffers(window);
 	}
 
+	// 종료 시 재생·그래픽·창 리소스를 생성 순서에 맞춰 해제한다.
 	stopVoicePlayback(app);
 	stopSoundEffectPlayback(app);
 	PlaySoundW(nullptr, nullptr, 0);

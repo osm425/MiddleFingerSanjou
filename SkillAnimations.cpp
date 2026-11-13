@@ -2,6 +2,7 @@
 #include <random>
 
 namespace {
+// 단일 프레임에서 조정할 관절, 몸통, 이동, 검과 망토 상태를 모은다.
 struct SkillActionPose {
 	float armLift = 0.0f;
 	float armReach = 0.0f;
@@ -21,6 +22,7 @@ struct SkillActionPose {
 	float capeRotationX = 0.0f;
 };
 
+// 자세 유지 시간과 프레임 진입 시 재생할 음성·효과음 정보를 저장한다.
 struct SkillFrame {
 	SkillActionPose pose;
 	double duration;
@@ -38,6 +40,7 @@ constexpr float unsealedSwordForwardSpeed = 20.0f;
 constexpr float unsealedSwordFlightDistance = 20.0f;
 constexpr float thrownSwordGravity = 9.8f;
 
+// 읽기 쉬운 인자 목록으로 애니메이션 한 프레임의 자세 값을 만든다.
 SkillActionPose action(float armLift = 0.0f, float armReach = 0.0f, float elbowBend = 0.0f,
 	float leftLegPitch = 0.0f, float rightLegPitch = 0.0f, float leftKneeFlex = 0.0f,
 	float rightKneeFlex = 0.0f, float rootY = 0.0f, float forward = 0.0f,
@@ -53,6 +56,7 @@ SkillActionPose action(float armLift = 0.0f, float armReach = 0.0f, float elbowB
 }
 
 // Shared leg poses keep the repeated kick sequences consistent across skills.
+// 오른다리 킥 시퀀스에서 공유하는 기준 자세를 정의한다.
 const SkillActionPose& rightLegRaisedToFace() {
 	static const SkillActionPose pose = action(0.2f, 0.0f, -1.0f, 0.0f, 2.50f, 0.0f, -1.00f, 0.0f, 0.0f, 0.0f, -0.1f, 0.2f);
 	return pose;
@@ -78,6 +82,7 @@ const SkillActionPose& rightLegHorizontal() {
 	return pose;
 }
 
+// 검을 뽑아 올리고 내려베기·가로베기·올려베기를 잇는 7개 자세를 반환한다.
 const std::array<SkillActionPose, 7>& swordComboPoses() {
 	static const std::array<SkillActionPose, 7> poses = { {
 		action(2.0f, -0.8f, 1.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.04f,0.0f,0.0f), // bend the arm back so the hand reaches the sword grip on the back
@@ -91,11 +96,7 @@ const std::array<SkillActionPose, 7>& swordComboPoses() {
 	return poses;
 }
 
-const SkillActionPose& swordThrowPose() {
-	static const SkillActionPose pose = action(-0.36f, -0.78f, 0.0f, 0.0f, 0.12f, 0.0f, 0.0f, 0.0f, 0.0f, 1.12f, 0.08f);
-	return pose;
-}
-
+// 봉인된 검 단계 6개 스킬의 자세·시간·보이스·효과음 프레임을 만든다.
 const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 	static const auto& combo = swordComboPoses();
 	static const std::array<std::vector<SkillFrame>, 6> frames = {{
@@ -145,12 +146,13 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 			{ combo[5], 0.6, nullptr, 0, false, false, { L"middlefather_0_9-1.wav" }, { L"middlefather_0_9-1.wav", L"middlefather_ch_1.wav" }, 0.0, { L"middlefather_0_9-1.wav", L"middlefather_ch_1.wav" } },
 			// Stage-1 skill 6 uses the longer skill-2 combo pose timing for this final swing.
 			{ combo[6], 1.2, nullptr, 0, false, false, { L"middlefather_0_9-2.wav" }, { L"middlefather_0_9-2.wav", L"middlefather_f_1-1.wav" }, 0.55, { L"middlefather_0_9-2.wav", L"middlefather_f_1-2.wav" } },
-			{ swordThrowPose(), 0.35, nullptr, 0, false, false, { L"middlefather_rl_1.wav" } }
+			{ action(0.36f, 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) , 0.35, nullptr, 0, false, false, { L"middlefather_rl_1.wav" } }
 		}
 	}};
 	return frames;
 }
 
+// 레바테인 스킬에서 재사용할 준비·킥·베기·찌르기 자세를 정의한다.
 const SkillActionPose& laevateinnReadyPose() {
 	static const SkillActionPose pose = action(0.0f, -0.0f, 0.0f, 0.20f, 1.20f, -1.20f, -1.20f, -0.6f, 0.0f, 0.0f, 0.18f, 0.2f,0.0f, 1.12f,glm::vec3(0.0f,0.0f,1.0f),0.4f);
 	return pose;
@@ -192,6 +194,7 @@ const SkillActionPose& laevateinnSkill6SlashPose() {
 	return pose;
 }
 
+// 레바테인 단계 스킬의 동작 순서와 프레임별 대사·효과음을 구성한다.
 const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 	static const auto& combo = swordComboPoses();
 	static const std::array<std::vector<SkillFrame>, 6> frames = [] {
@@ -261,6 +264,7 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 	return frames;
 }
 
+// 관절 좌표를 X·Y·Z축으로 돌리고 두 자세 사이를 보간한다.
 glm::vec3 rotateX(const glm::vec3& vector, float angle) {
 	const float c = std::cos(angle), s = std::sin(angle);
 	return { vector.x, vector.y * c - vector.z * s, vector.y * s + vector.z * c };
@@ -297,18 +301,21 @@ SkillActionPose mixPose(const SkillActionPose& a, const SkillActionPose& b, floa
 	};
 }
 
+// 프레임 목록의 전체 재생 시간을 누적해 반환한다.
 double frameSequenceDuration(const std::vector<SkillFrame>& frames) {
 	double total = 0.0;
 	for (const SkillFrame& frame : frames) total += frame.duration;
 	return total;
 }
 
+// 지정 프레임이 동작 목록에서 시작하는 누적 시각을 계산한다.
 double frameStartTime(const std::vector<SkillFrame>& frames, size_t frameIndex) {
 	double start = 0.0;
 	for (size_t i = 0; i < frameIndex && i < frames.size(); ++i) start += frames[i].duration;
 	return start;
 }
 
+// 레바테인 3번의 던지기·회수 플래그가 지정된 프레임 시각을 찾는다.
 double laevateinnSkill3FrameEventTime(bool SkillFrame::*eventFlag) {
 	double elapsed = 0.0;
 	for (const SkillFrame& frame : laevateinnSkillFrames()[2]) {
@@ -325,6 +332,7 @@ constexpr double unsealedSwordRecoverySeconds = 0.35;
 constexpr double laevateinnSkill6HoldBeforeSlash = 2.0;
 constexpr double laevateinnSkill6PostSlashWait = 5.0;
 
+// 봉인 해제 6번 스킬의 준비·손잡이 이동·던지기 전환 시각을 계산한다.
 double unsealedSwordPullbackStart() {
 	return frameSequenceDuration(sealedSkillFrames()[1]);
 }
@@ -341,6 +349,7 @@ double unsealedSwordReleaseTime() {
 	return unsealedSwordReleasePoseStart() + swordReleasePoseTransitionSeconds;
 }
 
+// 검 단계별 스킬의 타격 판정 시각을 반환한다.
 double enemyHitTime(int skillIndex, int swordStage, double approachDuration) {
 	if (swordStage == 3) {
 		switch (skillIndex) {
@@ -364,12 +373,14 @@ double enemyHitTime(int skillIndex, int swordStage, double approachDuration) {
 }
 
 // One held action pose replaces the procedural arm oscillation before the blade is thrown.
+// 검날을 던지기 직전 손을 손잡이 방향으로 둔 자세를 반환한다.
 const SkillActionPose& unsealedSwordPreThrowPose() {
 	static const SkillActionPose pose = action(
 		-0.22f, 1.45f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.05f, -0.22f, 0.32f, 0.0f, 0.0f, 1.2f, glm::vec3(0.0f, 0.0f, 0.0f),1.0f);
 	return pose;
 }
 
+// 경과 시각에 맞는 프레임 자세를 찾아 앞뒤 자세를 부드럽게 연결한다.
 SkillActionPose poseAtFrames(const std::vector<SkillFrame>& frames, double elapsed) {
 	const SkillActionPose neutral{};
 	double cursor = 0.0;
@@ -389,6 +400,7 @@ SkillActionPose poseAtFrames(const std::vector<SkillFrame>& frames, double elaps
 	return mixPose(previous, neutral, t * t * (3.0f - 2.0f * t));
 }
 
+// 레바테인 6번의 접근·준비·가로베기·종료 자세를 시각에 따라 계산한다.
 SkillActionPose laevateinnSkill6Pose(double elapsed, double approachDuration) {
 	const SkillActionPose walkPose = action(0.12f, 0.32f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.02f);
@@ -421,6 +433,7 @@ SkillActionPose laevateinnSkill6Pose(double elapsed, double approachDuration) {
 	return mixPose(laevateinnSkill6SlashPose(), SkillActionPose{}, t * t * (3.0f - 2.0f * t));
 }
 
+// 시작 검 단계와 스킬 번호에 맞춰 현재 재생할 자세를 선택한다.
 SkillActionPose poseAt(int skillIndex, double elapsed, int swordStageAtStart, double approachDuration) {
 	if (skillIndex < 0 || skillIndex >= 6) return {};
 	if (swordStageAtStart == 3) {
@@ -460,6 +473,7 @@ SkillActionPose poseAt(int skillIndex, double elapsed, int swordStageAtStart, do
 	return mixPose(comboPoses[6], SkillActionPose{}, recoveryT * recoveryT * (3.0f - 2.0f * recoveryT));
 }
 
+// 스킬 자세의 관절 회전과 몸통·이동 값을 캐릭터 기본 자세에 적용한다.
 CharacterPose applyPose(const CharacterPose& base, const SkillActionPose& skillPose) {
 	CharacterPose pose = base;
 	const glm::vec3 upperArm = rotateY(rotateX(rotateZ(base.leftElbow - base.leftShoulder,
@@ -485,14 +499,17 @@ CharacterPose applyPose(const CharacterPose& base, const SkillActionPose& skillP
 	return pose;
 }
 
+// 모델 행렬을 한 점에 적용해 변환된 좌표를 구한다.
 glm::vec3 transformPoint(const glm::mat4& transform, const glm::vec3& point) {
 	return glm::vec3(transform * glm::vec4(point, 1.0f));
 }
 
+// 땅에 박힌 검날의 방향을 캐릭터가 바라보는 방향에 맞춘다.
 glm::vec3 swordPlantDirection(const App& app) {
 	return glm::normalize(glm::vec3(
 		std::sin(app.characterPose.rootYaw), 0.0f, std::cos(app.characterPose.rootYaw)));
 }
+// 검 모델의 기본 세로축을 지정한 비행 방향에 맞춘다.
 glm::mat4 alignPositiveY(const glm::vec3& direction) {
 	const glm::vec3 source(0.0f, 1.0f, 0.0f);
 	const glm::vec3 target = glm::normalize(direction);
@@ -503,18 +520,22 @@ glm::mat4 alignPositiveY(const glm::vec3& direction) {
 }
 }
 
+// 레바테인 3번에서 검이 손을 떠나는 프레임 시간을 반환한다.
 double laevateinnSkill3ThrowTime() {
 	return laevateinnSkill3FrameEventTime(&SkillFrame::swordThrowOnEnter);
 }
 
+// 검 비행 종료 후 발차기 돌진이 시작되는 시간을 반환한다.
 double laevateinnSkill3KickStartTime() {
 	return laevateinnSkill3ThrowTime() + LAEVATEINN_SKILL3_FLIGHT_TIME;
 }
 
+// 레바테인 3번에서 검 회수 동작이 시작되는 시간을 반환한다.
 double laevateinnSkill3RetrievalTime() {
 	return laevateinnSkill3FrameEventTime(&SkillFrame::swordRetrievalOnEnter);
 }
 
+// 스킬·검 단계별 총 애니메이션 길이를 초 단위로 계산한다.
 double skillAnimationSeconds(int skillIndex, int swordStage) {
 	if (skillIndex < 0 || skillIndex >= 6) return 0.0;
 	if (swordStage == 3) {
@@ -529,22 +550,26 @@ double skillAnimationSeconds(int skillIndex, int swordStage) {
 	return total + frameSequenceDuration(sealedSkillFrames()[skillIndex]);
 }
 
+// 스킬 애니메이션 재생 슬롯이 활성 상태인지 확인한다.
 bool skillAnimationActive(const App& app) {
 	return app.skillAnimation.skillIndex >= 0;
 }
 
+// 활성 스킬의 진행 시각을 현재 캐릭터 관절 자세로 변환한다.
 CharacterPose animatedSkillPose(const App& app) {
 	if (!skillAnimationActive(app)) return app.characterPose;
 	return applyPose(app.characterPose, poseAt(app.skillAnimation.skillIndex,
 		app.skillAnimation.elapsed, app.skillAnimation.swordStageAtStart, app.skillAnimation.lungeDuration));
 }
 
+// 프레임 시간, 적 타격, 이동, 효과음·보이스와 검 투사체 상태를 갱신한다.
 void updateSkillAnimation(App& app, float deltaTime, double now) {
 	if (!skillAnimationActive(app) || deltaTime <= 0.0f) return;
 	SkillAnimationState& animation = app.skillAnimation;
 	const int skillIndex = animation.skillIndex;
 	const double previousElapsed = animation.elapsed;
 	animation.elapsed = std::min(animation.duration, animation.elapsed + static_cast<double>(deltaTime));
+	// 정해진 구간 동안 캐릭터를 전진시키고 필드 경계 안에 위치시킨다.
 	if (animation.lungeDistance > 0.0f && animation.lungeDuration > 0.0) {
 		const auto smoothProgress = [](double value) {
 			const float t = static_cast<float>(std::clamp(value, 0.0, 1.0));
@@ -562,6 +587,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 			app.characterPose.rootPosition = nextPosition;
 		}
 	}
+	// 타격 시각에 적과의 거리를 확인해 피격 방향과 상태를 설정한다.
 	if (animation.enemyHitPending && !animation.enemyHitResolved
 		&& animation.elapsed >= enemyHitTime(skillIndex, animation.swordStageAtStart, animation.lungeDuration)) {
 		const glm::vec2 toEnemy(app.enemyPosition.x - app.characterPose.rootPosition.x,
@@ -575,6 +601,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 			animation.enemyHitResolved = true;
 		}
 	}
+	// 프레임 진입 시점에 해당 단계의 음성과 효과음을 재생한다.
 	const std::vector<SkillFrame>& actionFrames = animation.swordStageAtStart == 3
 		? laevateinnSkillFrames()[skillIndex] : sealedSkillFrames()[skillIndex];
 	double actionStart = 0.0;
@@ -616,6 +643,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		}
 		actionStart += frame.duration;
 	}
+	// 프레임 경계와 별도로 지정한 효과음 시각을 한 번씩 감지한다.
 	const auto crossedSkillTime = [previousElapsed, &animation](double time) {
 		return (previousElapsed < time && animation.elapsed >= time)
 			|| (time <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0);
@@ -733,6 +761,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		}
 	}
 
+	// 돌진 진행률을 위치 변화로 바꾸고 이동 범위를 필드 안으로 제한한다.
 	const auto applyDash = [&app, &animation, previousElapsed](double start, double duration, float distance) {
 		const double previousProgress = std::clamp((previousElapsed - start) / duration, 0.0, 1.0);
 		const double currentProgress = std::clamp((animation.elapsed - start) / duration, 0.0, 1.0);
@@ -761,6 +790,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		applyDash(1.5, 1.0, 10.0f);
 	}
 
+	// 검 던지기 프레임에 손 위치에서 검을 분리해 단계별 비행을 시작한다.
 	const bool unsealSkill = skillIndex == 5 && animation.swordStageAtStart >= 0
 		&& animation.swordStageAtStart <= 2;
 	const bool laevateinnThrowSkill = skillIndex == 2 && animation.swordStageAtStart == 3;
@@ -829,6 +859,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		animation.thrownSwordElapsed += static_cast<double>(deltaTime);
 	}
 
+	// 비행 중 검 위치와 방향을 갱신하고 착지·검 박힘을 처리한다.
 	if (animation.swordThrown && animation.thrownSwordVisible) {
 		const float t = static_cast<float>(animation.thrownSwordElapsed);
 		const float gravity = animation.thrownSwordStage == 0 ? thrownSwordGravity : 0.0f;
@@ -860,6 +891,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 	if (animation.elapsed >= animation.duration) app.skillAnimation = {};
 }
 
+// 현재 검 투사체의 위치와 회전을 렌더링 변환 행렬로 만든다.
 glm::mat4 thrownSkillSwordTransform(const App& app) {
 	const SkillAnimationState& animation = app.skillAnimation;
 	if (animation.thrownSwordPlanted) {

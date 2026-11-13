@@ -36,16 +36,19 @@ static constexpr float CAMERA_GROUND_CLEARANCE = 0.35f;
 static constexpr float CHARACTER_FIELD_MARGIN = 4.0f;
 static constexpr float CHARACTER_MOVE_SPEED = 2.8f;
 
+// 카메라의 yaw·pitch와 목표점으로부터 월드 좌표 위치를 구한다.
 static glm::vec3 sceneCameraPosition(const glm::vec3& target, float yaw, float pitch) {
 	const float horizontal = SCENE_CAMERA_DISTANCE * std::cos(pitch);
 	const glm::vec3 offset(horizontal * std::sin(yaw), SCENE_CAMERA_DISTANCE * std::sin(pitch), horizontal * std::cos(yaw));
 	return target + offset;
 }
 
+// 카메라 위치와 목표점으로 장면의 view 행렬을 만든다.
 static glm::mat4 sceneViewMatrix(const glm::vec3& target, float yaw, float pitch) {
 	return glm::lookAt(sceneCameraPosition(target, yaw, pitch), target, glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
+// 화면 종횡비를 반영한 원근 투영 행렬을 만든다.
 static glm::mat4 sceneProjectionMatrix(float aspect) {
 	return glm::perspective(glm::radians(SCENE_CAMERA_FOV), aspect, 0.1f, 150.0f);
 }
@@ -54,6 +57,7 @@ struct Tint {
 	float r, g, b, a;
 };
 
+// 0~255 색상값을 셰이더에서 쓰는 0~1 범위로 바꾼다.
 static Tint rgba(int r, int g, int b, int a = 255) {
 	return { r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f };
 }
@@ -68,6 +72,7 @@ struct Rect {
 	float x, y, w, h;
 };
 
+// OpenGL 셰이더를 컴파일하고 실패 시 로그를 출력한다.
 static GLuint compileStage(GLenum type, const char* source) {
 	GLuint shader = glCreateShader(type);
 	glShaderSource(shader, 1, &source, nullptr);
@@ -86,6 +91,7 @@ static GLuint compileStage(GLenum type, const char* source) {
 	return shader;
 }
 
+// UI 사각형 렌더링에 쓰는 텍스처·마스크 셰이더 프로그램을 만든다.
 static GLuint makeUiProgram() {
 	static const char* vertexSource = R"GLSL(
 #version 330 core
