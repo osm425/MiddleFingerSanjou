@@ -34,6 +34,8 @@ struct SkillFrame {
 	std::vector<const wchar_t*> stage1SoundEffectsOnEnter;
 	double unsealedSoundEffectDelay = 0.0;
 	std::vector<const wchar_t*> stage2SoundEffectsOnEnter;
+	const wchar_t* stage1VoiceOnEnter = nullptr;
+	const wchar_t* stage2VoiceOnEnter = nullptr;
 };
 
 constexpr float unsealedSwordForwardSpeed = 20.0f;
@@ -102,22 +104,22 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 	static const std::array<std::vector<SkillFrame>, 6> frames = {{
 		{ // 1. Lift, stomp and kneel, tuck, then kick high
 			{ rightLegRaisedToFace(), 0.5 },
-			{ rightLegStompAndLeftKneel(), 0.5, nullptr, 0, false, false, { L"middlefather_0_1.wav" }, { L"middlefather_0_1.wav" } },
+			{ rightLegStompAndLeftKneel(), 0.5, L"9SV-BAT3-BR1-1.wav", 0x1u, false, false, { L"middlefather_0_1.wav" }, { L"middlefather_0_1.wav" } },
 			{ rightLegTuckedFootDown(), 0.5 },
-			{ rightLegExtendedKick(), 1.0, nullptr, 0, false, false, { L"middlefather_1_1.wav" }, { L"middlefather_1_1.wav" } }
+			{ rightLegExtendedKick(), 1.0, L"9SV-BAT3-BR1-2.wav", 0x2u, false, false, { L"middlefather_1_1.wav" }, { L"middlefather_1_1.wav" } }
 		},
 		{ // 2. Seven-part sword combo
 			{ combo[0], 0.05 },
 			{ combo[1], 0.5, nullptr, 0, false, false, { L"middlefather_0_7-1.wav" }, { L"middlefather_0_7-1.wav", L"middlefather_f_1-1.wav" } },
-			{ combo[2], 0.5, nullptr, 0, false, false, { L"middlefather_0_7-2.wav" }, { L"middlefather_0_7-2.wav", L"middlefather_f_1.wav" } },
+			{ combo[2], 0.5, L"9SV-BAT3-BR4-1.wav", 0x1u, false, false, { L"middlefather_0_7-2.wav" }, { L"middlefather_0_7-2.wav", L"middlefather_f_1.wav" } },
 			{ combo[3], 0.5, nullptr, 0, false, false, {}, { L"middlefather_ch_1.wav" } },
-			{ combo[4], 0.6, nullptr, 0, false, false, { L"middlefather_0_8.wav" }, { L"middlefather_0_8.wav", L"middlefather_f_1.wav" } },
+			{ combo[4], 0.6, L"9SV-BAT3-BR4-2.wav", 0x2u, false, false, { L"middlefather_0_8.wav" }, { L"middlefather_0_8.wav", L"middlefather_f_1.wav" } },
 			{ combo[5], 1.2, nullptr, 0, false, false, { L"middlefather_0_9-1.wav" }, { L"middlefather_0_9-1.wav", L"middlefather_f_1.wav" } },
-			{ combo[6], 1.0, nullptr, 0, false, false, { L"middlefather_0_9-2.wav" }, { L"middlefather_0_9-2.wav", L"middlefather_f_1-1.wav" } }
+			{ combo[6], 1.0, L"9SV-BAT3-BR4-3.wav", 0x4u, false, false, { L"middlefather_0_9-2.wav" }, { L"middlefather_0_9-2.wav", L"middlefather_f_1-1.wav" } }
 		},
 		{ // 3. Repeated kicks, jump, and landing
 			{ rightLegTuckedFootDown(), 0.1 },
-			{ rightLegExtendedKick(), 0.2, nullptr, 0, false, false, { L"middlefather_1_1.wav" }, { L"middlefather_1_1.wav" } },
+			{ rightLegExtendedKick(), 0.2, L"9SV-BAT3-BR2-1.wav", 0x1u, false, false, { L"middlefather_1_1.wav" }, { L"middlefather_1_1.wav" } },
 			{ rightLegTuckedFootDown(), 0.1 },
 			{ rightLegHorizontal(), 0.5, nullptr, 0, false, false, { L"middlefather_2_3.wav" }, { L"middlefather_2_3.wav" } },
 			{ rightLegStompAndLeftKneel(), 0.2, L"bored_to_play_2.wav", 0x2u, false, false, { L"human_jump.wav" }, { L"human_jump.wav" } },
@@ -129,7 +131,7 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 			{ rightLegTuckedFootDown(), 0.2 },
 			{ rightLegExtendedKick(), 0.2, nullptr, 0, false, false, { L"middlefather_1_1.wav" }, { L"middlefather_1_1.wav" } },
 			{ rightLegTuckedFootDown(), 0.2 },
-			{ rightLegHorizontal(), 0.5, nullptr, 0, false, false, { L"middlefather_2_3.wav" }, { L"middlefather_2_3.wav" } }
+			{ rightLegHorizontal(), 0.5, L"9SV-BAT3-BR2-2.wav", 0x2u, false, false, { L"middlefather_2_3.wav" }, { L"middlefather_2_3.wav" } }
 		},
 		{ // 5. Reuse the stomp setup, then dash with a horizontal kick
 			{ rightLegRaisedToFace(), 0.5 },
@@ -145,7 +147,8 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 			{ combo[4], 0.6, nullptr, 0, false, false, { L"middlefather_0_8.wav" }, { L"middlefather_0_8.wav", L"middlefather_f_1.wav" }, 0.0, { L"middlefather_0_8.wav", L"middlefather_f_1.wav" } },
 			{ combo[5], 0.6, nullptr, 0, false, false, { L"middlefather_0_9-1.wav" }, { L"middlefather_0_9-1.wav", L"middlefather_ch_1.wav" }, 0.0, { L"middlefather_0_9-1.wav", L"middlefather_ch_1.wav" } },
 			// Stage-1 skill 6 uses the longer skill-2 combo pose timing for this final swing.
-			{ combo[6], 1.2, nullptr, 0, false, false, { L"middlefather_0_9-2.wav" }, { L"middlefather_0_9-2.wav", L"middlefather_f_1-1.wav" }, 0.55, { L"middlefather_0_9-2.wav", L"middlefather_f_1-2.wav" } },
+			{ combo[6], 1.2, nullptr, 0x8u, false, false, { L"middlefather_0_9-2.wav" }, { L"middlefather_0_9-2.wav", L"middlefather_f_1-1.wav" }, 0.55, { L"middlefather_0_9-2.wav", L"middlefather_f_1-2.wav" },
+				L"9SV-BAT3-BR2-2-05.wav", L"9SV-BAT3-BR2-2-05.wav" },
 			{ action(0.36f, 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) , 0.35, nullptr, 0, false, false, { L"middlefather_rl_1.wav" } }
 		}
 	}};
@@ -201,13 +204,13 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 		std::array<std::vector<SkillFrame>, 6> result{};
 		result[0] = { // 1. Lower, high kick, raise the sword, dash and cut down.
 			{ laevateinnReadyPose(), 0.2, nullptr, 0, false, false, { L"human_drag.wav" } },
-			{ laevateinnHighKickPose(), 1.0, nullptr, 0, false, false, { L"middlefather_1_1.wav" } },
+			{ laevateinnHighKickPose(), 1.0, L"9SV-BAT3-BR6-1.wav", 0x1u, false, false, { L"middlefather_1_1.wav" } },
 			{ laevateinnSlashReadyPose(), 0.4, nullptr, 0, false, false, { L"middlefather_1_2-1.wav", L"middlefather_f_1-2.wav" } },
-			{ combo[2], 0.75, nullptr, 0, false, false, { L"middlefather_1_2-2.wav", L"middlefather_f_1-1.wav" } }
+			{ combo[2], 0.75, L"9SV-BAT3-BR6-2-01.wav", 0x2u, false, false, { L"middlefather_1_2-2.wav", L"middlefather_f_1-1.wav" } }
 		};
 		result[1] = { // 2. Two high kicks, one vertical kick, then two three-stab batches and retreat.
 			{ laevateinnReadyPose(), 0.1 },
-			{ laevateinnHighKickPose(), 0.1, nullptr, 0, false, false, { L"middlefather_1_1.wav" } },
+			{ laevateinnHighKickPose(), 0.1, L"9SV-BAT3-BR7-1.wav", 0x8u, false, false, { L"middlefather_1_1.wav" } },
 			{ laevateinnReadyPose(), 0.1 },
 			{ laevateinnHighKickPose(), 0.1, nullptr, 0, false, false, { L"middlefather_1_1.wav" } },
 			{ laevateinnReadyPose(), 0.1 },
@@ -238,19 +241,19 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 
 		result[2] = { // 3. Down, right-to-left, up, heavy down, throw, leap-kick and retrieve.
 			{ laevateinnSlashReadyPose(), 0.2, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
-			{ combo[2], 0.5, nullptr, 0, false, false, { L"middlefather_f_1-1.wav" } },
+			{ combo[2], 0.5, L"9SV-BAT3-BR8-1.wav", 0x4u, false, false, { L"middlefather_f_1-1.wav" } },
 			{ combo[3], 0.2, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
-			{ combo[4], 0.5, nullptr, 0, false, false, { L"middlefather_f_1.wav" } },
-			{ combo[6], 0.5, nullptr, 0, false, false, { L"middlefather_f_1-2.wav" } },
+			{ combo[4], 0.5, L"9SV-BAT3-BR8-2.wav", 0x8u, false, false, { L"middlefather_f_1.wav" } },
+			{ combo[6], 0.5, L"9SV-BAT3-BR8-3-01.wav", 0x10u, false, false, { L"middlefather_f_1-2.wav" } },
 			{ laevateinnsuperslashPose(), 0.2, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
-			{ combo[4], 0.8, nullptr, 0, false, false, { L"middlefather_6_4.wav", L"middlefather_f_1.wav" } },
+			{ combo[4], 0.8, L"9SV-BAT3-BR1-2-06.wav", 0x20u, false, false, { L"middlefather_6_4.wav", L"middlefather_f_1.wav" } },
 			{ laevateinnsuperslashPose(), 0.5, nullptr, 0, false, false, { L"middlefather_f_1-1.wav" } },
-			{ combo[4], 0.5, nullptr, 0, true, false, { L"middlefather_5_1-2.wav" } }, // throw at this frame's start
+			{ combo[4], 0.5, L"9SV-BAT3-BR6-2-02.wav", 0x40u, true, false, { L"middlefather_5_1-2.wav" } }, // throw at this frame's start
 			{ rightLegStompAndLeftKneel(), 0.5, nullptr, 0, false, false, { L"human_drag.wav" } },
 			{ action(0.0f, 0.0f, 0.0f, 0.2f, 1.48f, -1.5f, 0.0f, 1.0f, 0.0f, 0.0f, -0.05f, 0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 1.0, nullptr, 0, false, false, { L"human_jump.wav" } },
 			{ action(0.24f, 0.76f, 0.0f, 0.2f, 1.95f, -1.5f, -0.75f, 1.0f, 0.0f, 0.12f, 0.18f,0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 2.0,
 				L"bulls_eye_1.wav", 0x2u, false, false, { L"middlefather_ch_1.wav" } },
-			{ action(2.72f, 0.85f, 0.0f, 0.0f, -0.3f, 0.0f, -1.2f, 0.0f, 0.0f, -1.0f,0.1f,-0.4f,0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f),0.3f), 1.5, nullptr, 0, false, true,
+			{ action(2.72f, 0.85f, 0.0f, 0.0f, -0.3f, 0.0f, -1.2f, 0.0f, 0.0f, -1.0f,0.1f,-0.4f,0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f),0.3f), 1.5, L"9SV-BAT3-BR4-3-02.wav", 0x80u, false, true,
 				{ L"middlefather_5_2-2.wav" } }
 		};
 		result[4] = { // 5. Downward strike, then a dashing horizontal cut.
@@ -632,13 +635,21 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 				}
 			}
 		}
-		if (frame.voiceOnEnter) {
+		// 봉인 해제 6번의 같은 프레임은 단계별 지정 보이스를 우선 사용한다.
+		const wchar_t* voiceFile = frame.voiceOnEnter;
+		if (animation.swordStageAtStart == 1 && frame.stage1VoiceOnEnter) {
+			voiceFile = frame.stage1VoiceOnEnter;
+		}
+		else if (animation.swordStageAtStart == 2 && frame.stage2VoiceOnEnter) {
+			voiceFile = frame.stage2VoiceOnEnter;
+		}
+		if (voiceFile) {
 			const bool enteringAtStart = actionStart <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0;
 			const bool crossedActionStart = previousElapsed < actionStart && animation.elapsed >= actionStart;
 			if ((enteringAtStart || crossedActionStart)
 				&& (animation.voiceCueMask & frame.voiceCueBit) == 0) {
 				animation.voiceCueMask |= frame.voiceCueBit;
-				playSkillVoice(app, frame.voiceOnEnter, now);
+				playSkillVoice(app, voiceFile, now);
 			}
 		}
 		actionStart += frame.duration;
@@ -648,6 +659,14 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		return (previousElapsed < time && animation.elapsed >= time)
 			|| (time <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0);
 	};
+	if (animation.swordStageAtStart == 0 && skillIndex == 5) {
+		const std::vector<SkillFrame>& sealedSkill6Frames = sealedSkillFrames()[5];
+		const double actionVoiceTime = frameStartTime(sealedSkill6Frames, sealedSkill6Frames.size() - 1);
+		if (crossedSkillTime(actionVoiceTime) && (animation.voiceCueMask & 0x2u) == 0) {
+			animation.voiceCueMask |= 0x2u;
+			playSkillVoice(app, L"9SV-BAT3-BR2-1.wav", now);
+		}
+	}
 	if (animation.swordStageAtStart == 3 && skillIndex == 0) {
 		const double combo2Start = frameStartTime(laevateinnSkillFrames()[0], 3);
 		const double flourishTime = combo2Start + 0.2;
@@ -704,6 +723,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 			return (previousElapsed < start && animation.elapsed >= start)
 				|| (start <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0);
 		};
+		// 검을 등에서 당기기 시작하고 해방 동작에 들어가는 시점에 보이스를 재생한다.
 		if (crossedActionStart(unsealedSwordPullbackStart())
 			&& (animation.soundEffectCueMask & 0x1u) == 0) {
 			animation.soundEffectCueMask |= 0x1u;
@@ -716,6 +736,11 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 				playSkillSoundEffect(app, L"middlefather_of_1.wav", now);
 			}
 		}
+		if (crossedActionStart(unsealedSwordPullbackStart())
+			&& (animation.voiceCueMask & 0x2u) == 0) {
+			animation.voiceCueMask |= 0x2u;
+			playSkillVoice(app, L"9SV-BAT3-BR1-2-01.wav", now);
+		}
 		if (crossedActionStart(unsealedSwordReleasePoseStart())
 			&& (animation.soundEffectCueMask & 0x2u) == 0) {
 			animation.soundEffectCueMask |= 0x2u;
@@ -727,6 +752,12 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 				playSkillSoundEffect(app, L"middlefather_0_9-2.wav", now);
 				playSkillSoundEffect(app, L"middlefather_f_1-1.wav", now);
 			}
+		}
+		if (animation.swordStageAtStart == 1
+			&& crossedActionStart(unsealedSwordReleasePoseStart())
+			&& (animation.voiceCueMask & 0x4u) == 0) {
+			animation.voiceCueMask |= 0x4u;
+			playSkillVoice(app, L"9SV-BAT3-BR2-2-02.wav", now);
 		}
 		if (animation.swordStageAtStart == 2) {
 			const std::vector<SkillFrame>& comboFrames = sealedSkillFrames()[5];
