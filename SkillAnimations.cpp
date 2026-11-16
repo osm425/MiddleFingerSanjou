@@ -121,16 +121,16 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 			{ rightLegTuckedFootDown(), 0.1 },
 			{ rightLegExtendedKick(), 0.2, L"9SV-BAT3-BR2-1.wav", 0x1u, false, false, { L"middlefather_1_1.wav" }, { L"middlefather_1_1.wav" } },
 			{ rightLegTuckedFootDown(), 0.1 },
-			{ rightLegHorizontal(), 0.5, nullptr, 0, false, false, { L"middlefather_2_3.wav" }, { L"middlefather_2_3.wav" } },
+			{ rightLegHorizontal(), 0.6, nullptr, 0, false, false, { L"middlefather_2_3.wav" }, { L"middlefather_2_3.wav" } },
 			{ rightLegStompAndLeftKneel(), 0.2, L"bored_to_play_2.wav", 0x2u, false, false, { L"human_jump.wav" }, { L"human_jump.wav" } },
-			{ action(0.5f, -1.0f, -1.6f, -0.35f, 1.48f, -0.85f, 0.0f, 3.0f, 0.0f, 0.0f, -0.05f,0.4f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),1.2f), 0.8, nullptr, 0, false, false, { L"middlefather_0_3.wav" }, { L"middlefather_0_3.wav" } },
-			{ action(0.5f, -1.0f, -1.6f, -0.30f, 1.78f, -0.55f, 0.0f, 3.0f, 0.0f, 0.0f, -0.03f,0.4f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),1.2f), 0.1, nullptr, 0, false, false, { L"human_jump.wav" }, { L"human_jump.wav" } },
+			{ action(1.0f, 1.0f, 1.2f, -0.35f, 1.48f, -0.85f, 0.0f, 3.0f, 0.0f, 0.0f, -0.05f,0.4f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),1.2f), 0.8, nullptr, 0, false, false, { L"middlefather_0_3.wav" }, { L"middlefather_0_3.wav" } },
+			{ action(1.0f, 1.0f, 1.2f, -0.30f, 1.78f, -0.55f, 0.0f, 3.0f, 0.0f, 0.0f, -0.03f,0.4f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),1.2f), 0.1, nullptr, 0, false, false, { L"human_jump.wav" }, { L"human_jump.wav" } },
 			{ rightLegStompAndLeftKneel(), 1.0 , L"bored_to_play_3.wav", 0x4u, false, false, { L"middlefather_0_1.wav" }, { L"middlefather_0_1.wav" } }
 		},
 		{ // 4. Reuse tuck / kick / tuck / horizontal kick poses
-			{ rightLegTuckedFootDown(), 0.2 },
+			{ rightLegTuckedFootDown(), 0.1 },
 			{ rightLegExtendedKick(), 0.2, nullptr, 0, false, false, { L"middlefather_1_1.wav" }, { L"middlefather_1_1.wav" } },
-			{ rightLegTuckedFootDown(), 0.2 },
+			{ rightLegTuckedFootDown(), 0.1 },
 			{ rightLegHorizontal(), 0.5, L"9SV-BAT3-BR2-2.wav", 0x2u, false, false, { L"middlefather_2_3.wav" }, { L"middlefather_2_3.wav" } }
 		},
 		{ // 5. Reuse the stomp setup, then dash with a horizontal kick
@@ -214,11 +214,11 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 			{ laevateinnReadyPose(), 0.1 },
 			{ laevateinnHighKickPose(), 0.1, nullptr, 0, false, false, { L"middlefather_1_1.wav" } },
 			{ laevateinnReadyPose(), 0.1 },
-			{ laevateinnVerticalKickPose(), 0.3, nullptr, 0, false, false, { L"middlefather_2_3.wav" } },
+			{ laevateinnVerticalKickPose(), 0.5, nullptr, 0, false, false, { L"middlefather_2_3.wav" } },
 
 		};
 		result[1].push_back({ laevateinnHorizontalSlashPose(), 0.1 });
-		result[1].push_back({ laevateinnStabPose(), 0.5, L"is_hot_1.wav", 0x2u, false, false, { L"middlefather_ch_1.wav" } });
+		result[1].push_back({ laevateinnStabPose(), 0.6, L"is_hot_1.wav", 0x2u, false, false, { L"middlefather_ch_1.wav" } });
 		for (int batch = 0; batch < 2; ++batch) {
 			for (int stab = 0; stab < 3; ++stab) {
 				if (stab == 0) {
@@ -230,9 +230,9 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 				}
 				result[1].push_back({ laevateinnStabPose(), 0.1, nullptr, 0, false, false, { L"middlefather_2_4.wav" } });
 			}
-			result[1].push_back({ laevateinnStabPose(), 0.3 });
+			result[1].push_back({ laevateinnStabPose(), 0.35 });
 		}
-		result[1].push_back({ laevateinnStabPose(), 0.2, L"is_hot_2.wav", 0x4u, false, false,
+		result[1].push_back({ laevateinnStabPose(), 0.5, L"is_hot_2.wav", 0x4u, false, false,
 			{ L"middlefather_ch_1.wav", L"middlefather_2_5-1.wav" } });
 		result[1].push_back({ laevateinnSkill6SlashPose(), 1.5, nullptr, 0, false, false,
 			{ L"middlefather_2_5-2.wav", L"middlefather_f_1-1.wav" } }); // withdraw with the sword
@@ -243,15 +243,15 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 			{ laevateinnSlashReadyPose(), 0.2, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
 			{ combo[2], 0.5, L"9SV-BAT3-BR8-1.wav", 0x4u, false, false, { L"middlefather_f_1-1.wav" } },
 			{ combo[3], 0.2, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
-			{ combo[4], 0.5, L"9SV-BAT3-BR8-2.wav", 0x8u, false, false, { L"middlefather_f_1.wav" } },
+			{ combo[4], 0.6, L"9SV-BAT3-BR8-2.wav", 0x8u, false, false, { L"middlefather_f_1.wav" } },
 			{ combo[6], 0.5, L"9SV-BAT3-BR8-3-01.wav", 0x10u, false, false, { L"middlefather_f_1-2.wav" } },
-			{ laevateinnsuperslashPose(), 0.2, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
+			{ laevateinnsuperslashPose(), 0.5, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
 			{ combo[4], 0.8, L"9SV-BAT3-BR1-2-06.wav", 0x20u, false, false, { L"middlefather_6_4.wav", L"middlefather_f_1.wav" } },
 			{ laevateinnsuperslashPose(), 0.5, nullptr, 0, false, false, { L"middlefather_f_1-1.wav" } },
 			{ combo[4], 0.5, L"9SV-BAT3-BR6-2-02.wav", 0x40u, true, false, { L"middlefather_5_1-2.wav" } }, // throw at this frame's start
 			{ rightLegStompAndLeftKneel(), 0.5, nullptr, 0, false, false, { L"human_drag.wav" } },
-			{ action(0.0f, 0.0f, 0.0f, 0.2f, 1.48f, -1.5f, 0.0f, 1.0f, 0.0f, 0.0f, -0.05f, 0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 1.0, nullptr, 0, false, false, { L"human_jump.wav" } },
-			{ action(0.24f, 0.76f, 0.0f, 0.2f, 1.95f, -1.5f, -0.75f, 1.0f, 0.0f, 0.12f, 0.18f,0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 2.0,
+			{ action(1.0f, 1.0f, 1.2f, 0.2f, 1.48f, -1.5f, 0.0f, 1.0f, 0.0f, 0.0f, -0.05f, 0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 1.2, nullptr, 0, false, false, { L"human_jump.wav" } },
+			{ action(1.0f, 1.0f, 1.2f, 0.2f, 1.95f, -1.5f, -0.75f, 1.0f, 0.0f, 0.12f, 0.18f,0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 1.8,
 				L"bulls_eye_1.wav", 0x2u, false, false, { L"middlefather_ch_1.wav" } },
 			{ action(2.72f, 0.85f, 0.0f, 0.0f, -0.3f, 0.0f, -1.2f, 0.0f, 0.0f, -1.0f,0.1f,-0.4f,0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f),0.3f), 1.5, L"9SV-BAT3-BR4-3-02.wav", 0x80u, false, true,
 				{ L"middlefather_5_2-2.wav" } }
@@ -389,7 +389,7 @@ double enemyHitTime(int skillIndex, int swordStage, double approachDuration) {
 // 검날을 던지기 직전 손을 손잡이 방향으로 둔 자세를 반환한다.
 const SkillActionPose& unsealedSwordPreThrowPose() {
 	static const SkillActionPose pose = action(
-		-0.22f, 1.45f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.05f, -0.22f, 0.32f, 0.0f, 0.0f, 1.2f, glm::vec3(0.0f, 0.0f, 0.0f),1.0f);
+		-0.22f, 1.35f, 0.0f, -0.9f, 1.5f, -0.3f, -1.6f, -0.8f, 0.05f, -0.22f, 0.32f, 0.0f, 0.0f, 1.2f, glm::vec3(0.0f, 0.0f, 0.0f),1.0f);
 	return pose;
 }
 
