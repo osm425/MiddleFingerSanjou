@@ -1,64 +1,10 @@
 ﻿#include "GameState.h"
 
-#include <cmath>
-#include <cstdint>
-#include <cstring>
 
 #pragma comment(lib, "gdiplus.lib")
 #pragma comment(lib, "winmm.lib")
 
-namespace {
-// PCM 16비트 WAV의 샘플 진폭을 현재 음량의 4/5로 낮춰 메모리에 준비한다.
-bool loadBackgroundMusicAtReducedVolume(const fs::path& path, std::vector<char>& waveData) {
-	std::ifstream input(path, std::ios::binary);
-	if (!input) return false;
-	waveData.assign(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
-	if (waveData.size() < 12 || std::memcmp(waveData.data(), "RIFF", 4) != 0
-		|| std::memcmp(waveData.data() + 8, "WAVE", 4) != 0) return false;
 
-	uint16_t formatTag = 0;
-	uint16_t channelCount = 0;
-	uint16_t blockAlign = 0;
-	uint16_t bitsPerSample = 0;
-	size_t sampleDataOffset = 0;
-	size_t sampleDataSize = 0;
-	bool hasFormat = false;
-	bool hasSampleData = false;
-	for (size_t chunkOffset = 12; chunkOffset + 8 <= waveData.size();) {
-		uint32_t chunkSize = 0;
-		std::memcpy(&chunkSize, waveData.data() + chunkOffset + 4, sizeof(chunkSize));
-		const size_t payloadOffset = chunkOffset + 8;
-		if (chunkSize > waveData.size() - payloadOffset) return false;
-		if (std::memcmp(waveData.data() + chunkOffset, "fmt ", 4) == 0) {
-			if (chunkSize < 16) return false;
-			std::memcpy(&formatTag, waveData.data() + payloadOffset, sizeof(formatTag));
-			std::memcpy(&channelCount, waveData.data() + payloadOffset + 2, sizeof(channelCount));
-			std::memcpy(&blockAlign, waveData.data() + payloadOffset + 12, sizeof(blockAlign));
-			std::memcpy(&bitsPerSample, waveData.data() + payloadOffset + 14, sizeof(bitsPerSample));
-			hasFormat = true;
-		}
-		else if (std::memcmp(waveData.data() + chunkOffset, "data", 4) == 0) {
-			sampleDataOffset = payloadOffset;
-			sampleDataSize = chunkSize;
-			hasSampleData = true;
-		}
-		const size_t paddedChunkSize = static_cast<size_t>(chunkSize) + (chunkSize & 1u);
-		if (paddedChunkSize > waveData.size() - payloadOffset) break;
-		chunkOffset = payloadOffset + paddedChunkSize;
-	}
-	if (!hasFormat || !hasSampleData || formatTag != WAVE_FORMAT_PCM || bitsPerSample != 16
-		|| channelCount == 0 || blockAlign < channelCount * sizeof(int16_t)) return false;
-
-	for (size_t offset = sampleDataOffset; offset + sizeof(int16_t) <= sampleDataOffset + sampleDataSize;
-		offset += sizeof(int16_t)) {
-		int16_t sample = 0;
-		std::memcpy(&sample, waveData.data() + offset, sizeof(sample));
-		const int16_t reducedSample = static_cast<int16_t>(std::lround(static_cast<double>(sample) * 0.6));
-		std::memcpy(waveData.data() + offset, &reducedSample, sizeof(reducedSample));
-	}
-	return true;
-}
-}
 
 // GLFW 창과 OpenGL 3.3 렌더링 문맥을 준비한다.
 GLFWwindow* createOpenGLWindow(int width, int height, const char* title) {
@@ -233,16 +179,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 
 	const fs::path startMusicPath = assetRoot / L"Middle_Finger_Sanjou_Cut.wav";
 	const fs::path mainMusicPath = assetRoot / L"Matthias_Theme.wav";
-	std::vector<char> startMusicWave;
-	std::vector<char> mainMusicWave;
-	if (!loadBackgroundMusicAtReducedVolume(startMusicPath, startMusicWave)) {
-		startMusicWave.clear();
-		std::wcerr << L"Could not load background music: " << startMusicPath << L'\n';
-	}
-	if (!loadBackgroundMusicAtReducedVolume(mainMusicPath, mainMusicWave)) {
-		mainMusicWave.clear();
-		std::wcerr << L"Could not load background music: " << mainMusicPath << L'\n';
-	}
+
 	Screen musicScreen = Screen::Start;
 	bool musicPlaying = false;
 	bool previousMusicEnabled = false;
@@ -263,10 +200,8 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 
 		if (trackChanged || musicJustEnabled) {
 			const fs::path& requestedPath = musicScreen == Screen::Main ? mainMusicPath : startMusicPath;
-			const std::vector<char>& requestedWave = musicScreen == Screen::Main ? mainMusicWave : startMusicWave;
-			musicPlaying = !requestedWave.empty() && PlaySoundW(
-				reinterpret_cast<LPCWSTR>(requestedWave.data()), nullptr,
-				SND_MEMORY | SND_ASYNC | SND_LOOP | SND_NODEFAULT) != FALSE;
+			musicPlaying = PlaySoundW(requestedPath.c_str(), nullptr,
+				SND_FILENAME | SND_ASYNC | SND_LOOP | SND_NODEFAULT) != FALSE;
 			if (!musicPlaying) {
 				std::wcerr << L"Could not play background music: " << requestedPath << L'\n';
 			}
