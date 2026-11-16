@@ -110,9 +110,9 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 		},
 		{ // 2. Seven-part sword combo
 			{ combo[0], 0.05 },
-			{ combo[1], 0.5, nullptr, 0, false, false, { L"middlefather_0_7-1.wav" }, { L"middlefather_0_7-1.wav", L"middlefather_f_1-1.wav" } },
-			{ combo[2], 0.5, L"9SV-BAT3-BR4-1.wav", 0x1u, false, false, { L"middlefather_0_7-2.wav" }, { L"middlefather_0_7-2.wav", L"middlefather_f_1.wav" } },
-			{ combo[3], 0.5, nullptr, 0, false, false, {}, { L"middlefather_ch_1.wav" } },
+			{ combo[1], 0.6, nullptr, 0, false, false, { L"middlefather_0_7-1.wav" }, { L"middlefather_0_7-1.wav", L"middlefather_f_1-1.wav" } },
+			{ combo[2], 0.6, L"9SV-BAT3-BR4-1.wav", 0x1u, false, false, { L"middlefather_0_7-2.wav" }, { L"middlefather_0_7-2.wav", L"middlefather_f_1.wav" } },
+			{ combo[3], 0.6, nullptr, 0, false, false, {}, { L"middlefather_ch_1.wav" } },
 			{ combo[4], 0.6, L"9SV-BAT3-BR4-2.wav", 0x2u, false, false, { L"middlefather_0_8.wav" }, { L"middlefather_0_8.wav", L"middlefather_f_1.wav" } },
 			{ combo[5], 1.2, nullptr, 0, false, false, { L"middlefather_0_9-1.wav" }, { L"middlefather_0_9-1.wav", L"middlefather_f_1.wav" } },
 			{ combo[6], 1.0, L"9SV-BAT3-BR4-3.wav", 0x4u, false, false, { L"middlefather_0_9-2.wav" }, { L"middlefather_0_9-2.wav", L"middlefather_f_1-1.wav" } }
@@ -140,16 +140,16 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 			{ rightLegHorizontal(), 1.0, nullptr, 0, false, false, { L"middlefather_2_3.wav" }, { L"middlefather_2_3.wav" } }
 		},
 		{ // 6. Reuse the sword combo, then transition and throw at the 3_10 pose
-			{ combo[0], 0.1 },
-			{ combo[1], 0.5, nullptr, 0, false, false, { L"middlefather_0_7-1.wav" }, { L"middlefather_0_7-1.wav", L"middlefather_f_1-1.wav" }, 0.0, { L"middlefather_0_7-1.wav", L"middlefather_ch_1.wav" } },
-			{ combo[2], 0.5, nullptr, 0, false, false, { L"middlefather_0_7-2.wav" }, { L"middlefather_0_7-2.wav", L"middlefather_f_1.wav" }, 0.0, { L"middlefather_0_7-2.wav", L"middlefather_f_1-1.wav" } },
-			{ combo[3], 0.5, nullptr, 0, false, false, {}, { L"middlefather_ch_1.wav" }, 0.0, { L"middlefather_ch_1.wav" } },
+			{ combo[0], 0.05 },
+			{ combo[1], 0.6, nullptr, 0, false, false, { L"middlefather_0_7-1.wav" }, { L"middlefather_0_7-1.wav", L"middlefather_f_1-1.wav" }, 0.0, { L"middlefather_0_7-1.wav", L"middlefather_ch_1.wav" } },
+			{ combo[2], 0.6, nullptr, 0, false, false, { L"middlefather_0_7-2.wav" }, { L"middlefather_0_7-2.wav", L"middlefather_f_1.wav" }, 0.0, { L"middlefather_0_7-2.wav", L"middlefather_f_1-1.wav" } },
+			{ combo[3], 0.6, nullptr, 0, false, false, {}, { L"middlefather_ch_1.wav" }, 0.0, { L"middlefather_ch_1.wav" } },
 			{ combo[4], 0.6, nullptr, 0, false, false, { L"middlefather_0_8.wav" }, { L"middlefather_0_8.wav", L"middlefather_f_1.wav" }, 0.0, { L"middlefather_0_8.wav", L"middlefather_f_1.wav" } },
-			{ combo[5], 0.6, nullptr, 0, false, false, { L"middlefather_0_9-1.wav" }, { L"middlefather_0_9-1.wav", L"middlefather_ch_1.wav" }, 0.0, { L"middlefather_0_9-1.wav", L"middlefather_ch_1.wav" } },
+			{ combo[5], 1.2, nullptr, 0, false, false, { L"middlefather_0_9-1.wav" }, { L"middlefather_0_9-1.wav", L"middlefather_ch_1.wav" }, 0.0, { L"middlefather_0_9-1.wav", L"middlefather_ch_1.wav" } },
 			// Stage-1 skill 6 uses the longer skill-2 combo pose timing for this final swing.
-			{ combo[6], 1.2, nullptr, 0x8u, false, false, { L"middlefather_0_9-2.wav" }, { L"middlefather_0_9-2.wav", L"middlefather_f_1-1.wav" }, 0.55, { L"middlefather_0_9-2.wav", L"middlefather_f_1-2.wav" },
+			{ combo[6], 1.5, nullptr, 0x8u, false, false, { L"middlefather_0_9-2.wav" }, { L"middlefather_0_9-2.wav", L"middlefather_f_1-1.wav" }, 0.0, { L"middlefather_0_9-2.wav", L"middlefather_f_1-2.wav" },
 				L"9SV-BAT3-BR2-2-05.wav", L"9SV-BAT3-BR2-2-05.wav" },
-			{ action(0.36f, 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) , 0.35, nullptr, 0, false, false, { L"middlefather_rl_1.wav" } }
+			{ action(0.36f, 0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) , 1.0, nullptr, 0, true, false, { L"middlefather_rl_1.wav" } }
 		}
 	}};
 	return frames;
@@ -318,14 +318,24 @@ double frameStartTime(const std::vector<SkillFrame>& frames, size_t frameIndex) 
 	return start;
 }
 
-// 레바테인 3번의 던지기·회수 플래그가 지정된 프레임 시각을 찾는다.
-double laevateinnSkill3FrameEventTime(bool SkillFrame::*eventFlag) {
+// 프레임 목록에서 지정된 이벤트 플래그가 켜진 시각을 계산한다.
+double frameEventTime(const std::vector<SkillFrame>& frames, bool SkillFrame::*eventFlag) {
 	double elapsed = 0.0;
-	for (const SkillFrame& frame : laevateinnSkillFrames()[2]) {
+	for (const SkillFrame& frame : frames) {
 		if (frame.*eventFlag) return elapsed;
 		elapsed += frame.duration;
 	}
 	return elapsed;
+}
+
+// 봉인된 검 6번의 마지막 모션 진입 시각을 검 투척 시각으로 사용한다.
+double sealedSkill6ThrowTime() {
+	return frameEventTime(sealedSkillFrames()[5], &SkillFrame::swordThrowOnEnter);
+}
+
+// 레바테인 3번에서 검을 던지거나 회수하는 프레임 시각을 찾는다.
+double laevateinnSkill3FrameEventTime(bool SkillFrame::*eventFlag) {
+	return frameEventTime(laevateinnSkillFrames()[2], eventFlag);
 }
 
 constexpr double swordPullbackTransitionSeconds = 0.35;
@@ -370,7 +380,7 @@ double enemyHitTime(int skillIndex, int swordStage, double approachDuration) {
 	case 2: return 0.1; // first kick
 	case 3: return 0.2; // kick impact
 	case 4: return 1.5; // forward dash kick
-	case 5: return swordStage == 0 ? 4.0 : unsealedSwordReleaseTime();
+	case 5: return swordStage == 0 ? 5.55 : unsealedSwordReleaseTime();
 	default: return 0.0;
 	}
 }
@@ -457,6 +467,7 @@ SkillActionPose poseAt(int skillIndex, double elapsed, int swordStageAtStart, do
 	if (elapsed < pullbackEnd) {
 		const float t = static_cast<float>(std::clamp(
 			(elapsed - comboEnd) / swordPullbackTransitionSeconds, 0.0, 1.0));
+
 		return mixPose(comboPoses[6], unsealedSwordPreThrowPose(), t * t * (3.0f - 2.0f * t));
 	}
 	if (elapsed < preThrowHoldEnd) {
@@ -660,8 +671,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 			|| (time <= 0.0 && previousElapsed <= 0.0 && animation.elapsed > 0.0);
 	};
 	if (animation.swordStageAtStart == 0 && skillIndex == 5) {
-		const std::vector<SkillFrame>& sealedSkill6Frames = sealedSkillFrames()[5];
-		const double actionVoiceTime = frameStartTime(sealedSkill6Frames, sealedSkill6Frames.size() - 1);
+		const double actionVoiceTime = sealedSkill6ThrowTime();
 		if (crossedSkillTime(actionVoiceTime) && (animation.voiceCueMask & 0x2u) == 0) {
 			animation.voiceCueMask |= 0x2u;
 			playSkillVoice(app, L"9SV-BAT3-BR2-1.wav", now);
@@ -826,7 +836,7 @@ void updateSkillAnimation(App& app, float deltaTime, double now) {
 		&& animation.swordStageAtStart <= 2;
 	const bool laevateinnThrowSkill = skillIndex == 2 && animation.swordStageAtStart == 3;
 	const double swordReleaseTime = laevateinnThrowSkill ? laevateinnSkill3ThrowTime()
-		: (animation.swordStageAtStart == 0 ? 4.0 : unsealedSwordReleaseTime());
+		: (animation.swordStageAtStart == 0 ? sealedSkill6ThrowTime() : unsealedSwordReleaseTime());
 	if ((unsealSkill || laevateinnThrowSkill) && !animation.swordThrown
 		&& previousElapsed < swordReleaseTime && animation.elapsed >= swordReleaseTime) {
 		const CharacterPose releasePose = applyPose(app.characterPose,

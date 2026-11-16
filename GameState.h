@@ -11,7 +11,7 @@ static constexpr float ENEMY_LUNGE_DISTANCE = 1.2f;
 static constexpr double ENEMY_LUNGE_SECONDS = 0.3;
 static constexpr double LAEVATEINN_SKILL3_FLIGHT_TIME = 1.0;
 static constexpr double LAEVATEINN_SKILL5_DASH_START = 0.12 + 0.5 + 0.5;
-static constexpr float LAEVATEINN_SKILL6_KIRA_FORWARD_OFFSET = 2.0f;
+static constexpr float LAEVATEINN_SKILL6_KIRA_FORWARD_OFFSET = 2.8f;
 static constexpr float LAEVATEINN_SKILL6_STOP_DISTANCE_FROM_KIRA = 2.5f;
 
 // 캐릭터 기준 위치, 방향, 관절과 몸통·무기·망토 회전값을 저장한다.
