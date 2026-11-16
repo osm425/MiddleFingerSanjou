@@ -109,6 +109,7 @@ struct App {
 	fs::path assetRoot;
 	GroundPlane ground;
 	ObjModel model;
+	ObjModel bookshelf;
 	ObjModel enemyModel;
 	ObjModel kiModel;
 	ObjModel raModel;

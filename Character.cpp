@@ -128,6 +128,38 @@ CharacterPose animatedCharacterPose(const App& app) {
 	return animated;
 }
 
+// 모델의 비율을 유지해 필드 네 변을 책장으로 촘촘히 둘러싼다.
+static void drawFieldBookshelfWalls(App& app, float aspect) {
+	if (!app.bookshelf.loaded()) return;
+	const glm::vec3 shelfExtent = app.bookshelf.localExtent();
+	if (shelfExtent.x <= 0.0f || shelfExtent.y <= 0.0f || shelfExtent.z <= 0.0f) return;
+
+	const float fieldWidth = FIELD_HALF_EXTENT * 2.0f;
+	const size_t shelfCount = std::max<size_t>(1, static_cast<size_t>(
+		std::ceil(fieldWidth / (shelfExtent.z * 0.96f))));
+	const float spacing = fieldWidth / static_cast<float>(shelfCount);
+	const float shelfY = FIELD_Y + shelfExtent.y * 0.5f;
+	const float wallOffset = FIELD_HALF_EXTENT + shelfExtent.x * 0.5f;
+	const float quarterTurn = 1.57079632679f;
+	const float halfTurn = 3.14159265359f;
+
+	for (size_t index = 0; index < shelfCount; ++index) {
+		const float alongWall = -FIELD_HALF_EXTENT + (static_cast<float>(index) + 0.5f) * spacing;
+		// 책장 앞면을 필드 안쪽으로 향하게 하고, 네 벽 사이에 틈이 없도록 겹쳐 배치한다.
+		const glm::mat4 eastWall = glm::translate(glm::mat4(1.0f), glm::vec3(wallOffset, shelfY, alongWall))
+			* glm::rotate(glm::mat4(1.0f), halfTurn, glm::vec3(0.0f, 1.0f, 0.0f));
+		const glm::mat4 westWall = glm::translate(glm::mat4(1.0f), glm::vec3(-wallOffset, shelfY, alongWall));
+		const glm::mat4 northWall = glm::translate(glm::mat4(1.0f), glm::vec3(alongWall, shelfY, wallOffset))
+			* glm::rotate(glm::mat4(1.0f), quarterTurn, glm::vec3(0.0f, 1.0f, 0.0f));
+		const glm::mat4 southWall = glm::translate(glm::mat4(1.0f), glm::vec3(alongWall, shelfY, -wallOffset))
+			* glm::rotate(glm::mat4(1.0f), -quarterTurn, glm::vec3(0.0f, 1.0f, 0.0f));
+		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, app.characterPose.rootPosition, eastWall);
+		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, app.characterPose.rootPosition, westWall);
+		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, app.characterPose.rootPosition, northWall);
+		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, app.characterPose.rootPosition, southWall);
+	}
+}
+
 // 바닥, 그림자, 적, 캐릭터와 무기 및 스킬 UI를 메인 화면에 그린다.
 void drawMainScreen(App& app, double now) {
 	Canvas& canvas = app.canvas;
@@ -138,6 +170,7 @@ void drawMainScreen(App& app, double now) {
 		const CharacterPose pose = animatedCharacterPose(app);
 		const CharacterRig& rig = app.characterRig;
 		app.ground.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition);
+		drawFieldBookshelfWalls(app, aspect);
 		const float lowestFootY = pose.rootPosition.y + std::min(pose.leftFootBase.y, pose.rightFootBase.y);
 		const float footClearance = std::max(0.0f, lowestFootY - FIELD_Y);
 		app.ground.drawShadow(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition,

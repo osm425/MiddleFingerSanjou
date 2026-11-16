@@ -120,6 +120,8 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	const Texture modelTexture = assets.loadImage(L"models/bodytexture.png");
 	app.model.load(assetRoot / L"models" / L"Matthias.obj", modelTexture);
 	const fs::path modelRoot = assetRoot / L"models";
+	const Texture bookshelfTexture = assets.loadImage(L"models/books.png");
+	app.bookshelf.load(modelRoot / L"bookshelf.obj", bookshelfTexture, glm::vec3(1.0f), 8.0f);
 	const Texture enemyTexture = assets.loadImage(L"models/vespa1.png");
 	app.enemyModel.load(modelRoot / L"Vespa.obj", enemyTexture, glm::vec3(0.78f, 0.68f, 0.55f), VESPA_MODEL_EXTENT);
 	const Texture kiTexture = assets.loadImage(L"models/Kira_upper.png");
@@ -315,6 +317,7 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	PlaySoundW(nullptr, nullptr, 0);
 	app.ground.release();
 	app.model.release();
+	app.bookshelf.release();
 	app.enemyModel.release();
 	app.kiModel.release();
 	app.raModel.release();
