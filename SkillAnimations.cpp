@@ -105,7 +105,7 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 		{ // 1. Lift, stomp and kneel, tuck, then kick high
 			{ rightLegRaisedToFace(), 0.5 },
 			{ rightLegStompAndLeftKneel(), 0.5, L"9SV-BAT3-BR1-1.wav", 0x1u, false, false, { L"middlefather_0_1.wav" }, { L"middlefather_0_1.wav" } },
-			{ rightLegTuckedFootDown(), 0.5 },
+			{ rightLegTuckedFootDown(), 0.5, L"human_jump.wav", 0x1u, false, false,{ L"human_jump.wav" },{ L"human_jump.wav" } },
 			{ rightLegExtendedKick(), 1.0, L"9SV-BAT3-BR1-2.wav", 0x2u, false, false, { L"middlefather_1_1.wav" }, { L"middlefather_1_1.wav" } }
 		},
 		{ // 2. Seven-part sword combo
@@ -124,7 +124,7 @@ const std::array<std::vector<SkillFrame>, 6>& sealedSkillFrames() {
 			{ rightLegHorizontal(), 0.6, nullptr, 0, false, false, { L"middlefather_2_3.wav" }, { L"middlefather_2_3.wav" } },
 			{ rightLegStompAndLeftKneel(), 0.2, L"bored_to_play_2.wav", 0x2u, false, false, { L"human_jump.wav" }, { L"human_jump.wav" } },
 			{ action(1.0f, 1.0f, 1.2f, -0.35f, 1.48f, -0.85f, 0.0f, 3.0f, 0.0f, 0.0f, -0.05f,0.4f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),1.2f), 0.8, nullptr, 0, false, false, { L"middlefather_0_3.wav" }, { L"middlefather_0_3.wav" } },
-			{ action(1.0f, 1.0f, 1.2f, -0.30f, 1.78f, -0.55f, 0.0f, 3.0f, 0.0f, 0.0f, -0.03f,0.4f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),1.2f), 0.1, nullptr, 0, false, false, { L"human_jump.wav" }, { L"human_jump.wav" } },
+			{ action(1.0f, 1.0f, 1.2f, -0.30f, 2.08f, -0.55f, -0.6f, 3.0f, 0.0f, 0.0f, -0.03f,0.4f,0.0f,0.0f,glm::vec3(0.0f,0.0f,0.0f),1.2f), 0.1, nullptr, 0, false, false, { L"human_jump.wav" }, { L"human_jump.wav" } },
 			{ rightLegStompAndLeftKneel(), 1.0 , L"bored_to_play_3.wav", 0x4u, false, false, { L"middlefather_0_1.wav" }, { L"middlefather_0_1.wav" } }
 		},
 		{ // 4. Reuse tuck / kick / tuck / horizontal kick poses

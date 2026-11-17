@@ -129,7 +129,7 @@ CharacterPose animatedCharacterPose(const App& app) {
 }
 
 // 모델의 비율을 유지해 필드 네 변을 책장으로 촘촘히 둘러싼다.
-static void drawFieldBookshelfWalls(App& app, float aspect) {
+static void drawFieldBookshelfWalls(App& app, float aspect, const glm::vec3& cameraTarget) {
 	if (!app.bookshelf.loaded()) return;
 	const glm::vec3 shelfExtent = app.bookshelf.localExtent();
 	if (shelfExtent.x <= 0.0f || shelfExtent.y <= 0.0f || shelfExtent.z <= 0.0f) return;
@@ -138,7 +138,8 @@ static void drawFieldBookshelfWalls(App& app, float aspect) {
 	const size_t shelfCount = std::max<size_t>(1, static_cast<size_t>(
 		std::ceil(fieldWidth / (shelfExtent.z * 0.96f))));
 	const float spacing = fieldWidth / static_cast<float>(shelfCount);
-	const float shelfY = FIELD_Y + shelfExtent.y * 0.5f;
+	// 캐릭터 원점과 무관하게 책장 모델의 최하단을 필드 바닥에 맞춘다.
+	const float shelfY = FIELD_Y - app.bookshelf.localBoundsMin().y;
 	const float wallOffset = FIELD_HALF_EXTENT + shelfExtent.x * 0.5f;
 	const float quarterTurn = 1.57079632679f;
 	const float halfTurn = 3.14159265359f;
@@ -153,10 +154,10 @@ static void drawFieldBookshelfWalls(App& app, float aspect) {
 			* glm::rotate(glm::mat4(1.0f), quarterTurn, glm::vec3(0.0f, 1.0f, 0.0f));
 		const glm::mat4 southWall = glm::translate(glm::mat4(1.0f), glm::vec3(alongWall, shelfY, -wallOffset))
 			* glm::rotate(glm::mat4(1.0f), -quarterTurn, glm::vec3(0.0f, 1.0f, 0.0f));
-		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, app.characterPose.rootPosition, eastWall);
-		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, app.characterPose.rootPosition, westWall);
-		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, app.characterPose.rootPosition, northWall);
-		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, app.characterPose.rootPosition, southWall);
+		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, cameraTarget, eastWall);
+		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, cameraTarget, westWall);
+		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, cameraTarget, northWall);
+		app.bookshelf.draw(aspect, app.cameraYaw, app.cameraPitch, cameraTarget, southWall);
 	}
 }
 
@@ -170,7 +171,7 @@ void drawMainScreen(App& app, double now) {
 		const CharacterPose pose = animatedCharacterPose(app);
 		const CharacterRig& rig = app.characterRig;
 		app.ground.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition);
-		drawFieldBookshelfWalls(app, aspect);
+		drawFieldBookshelfWalls(app, aspect, pose.rootPosition);
 		const float lowestFootY = pose.rootPosition.y + std::min(pose.leftFootBase.y, pose.rightFootBase.y);
 		const float footClearance = std::max(0.0f, lowestFootY - FIELD_Y);
 		app.ground.drawShadow(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition,

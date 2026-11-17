@@ -1,4 +1,5 @@
 ﻿C:\Program Files\Microsoft Visual Studio\18\Insiders\MSBuild\Microsoft\VC\v180\Microsoft.CppBuild.targets(550,5): warning MSB8028: 중간 디렉터리(MiddleFi.e0c81f33\x64\Debug\)에 다른 프로젝트(MiddleFingerSanuou.vcxproj)에서 공유하는 파일이 포함되어 있습니다.  이로 인해 잘못된 정리 및 다시 빌드 동작이 수행될 수 있습니다.
-  MiddleFingerSanjou.cpp
-LINK : warning LNK4098: 'MSVCRT' defaultlib가 다른 라이브러리와 충돌합니다. /NODEFAULTLIB:library를 사용하십시오.
+  SkillAnimations.cpp
+C:\Users\osm04\Documents\comgraproj\MiddleFingerSanjou\SkillAnimations.cpp(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+C:\Users\osm04\Documents\comgraproj\MiddleFingerSanjou\SkillAnimations.cpp(516,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
   MiddleFingerSanuou.vcxproj -> C:\Users\osm04\Documents\comgraproj\MiddleFingerSanjou\x64\Debug\MiddleFingerSanjou.exe

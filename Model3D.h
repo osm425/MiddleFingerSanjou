@@ -266,6 +266,7 @@ void main() {
 	float modelScale() const { return modelScale_; }
 	glm::vec3 sourceCenter() const { return sourceCenter_; }
 	glm::vec3 scaledSourceCenter() const { return sourceCenter_ * modelScale_; }
+	glm::vec3 localBoundsMin() const { return localBoundsMin_; }
 	glm::vec3 localExtent() const { return localBoundsMax_ - localBoundsMin_; }
 	// 검 모델의 손잡이 기준점을 하단에서부터 추정해 반환한다.
 	glm::vec3 swordGripAnchor() const {
