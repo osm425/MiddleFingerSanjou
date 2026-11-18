@@ -75,6 +75,71 @@ static glm::vec3 transformPoint(const glm::mat4& transform, const glm::vec3& poi
 	return glm::vec3(transform * glm::vec4(point, 1.0f));
 }
 
+// 3D 좌표를 1280x720 디자인 좌표계로 투영한다.
+static bool projectToDesign(const glm::vec3& point, const glm::mat4& viewProjection, glm::vec2& output);
+
+// 스킬 중 실제 검 움직임이 발생한 프레임의 손잡이·검끝 좌표를 저장한다.
+static void recordSkillSwordTrail(App& app, const ObjModel& sword, const glm::mat4& swordTransform) {
+	if (!skillAnimationActive(app)) return;
+	SkillAnimationState& skill = app.skillAnimation;
+	constexpr double trailLifetime = 0.22;
+	while (skill.swordTrailSampleCount > 0
+		&& skill.elapsed - skill.swordTrailSamples[0].elapsed > trailLifetime) {
+		for (size_t i = 1; i < skill.swordTrailSampleCount; ++i) {
+			skill.swordTrailSamples[i - 1] = skill.swordTrailSamples[i];
+		}
+		--skill.swordTrailSampleCount;
+	}
+	if (skill.swordTrailSampleCount > 0
+		&& skill.elapsed <= skill.swordTrailSamples[skill.swordTrailSampleCount - 1].elapsed + 1e-5) {
+		return;
+	}
+	const glm::vec3 base = transformPoint(swordTransform, sword.swordGripAnchor()+glm::vec3(0.0f,0.35f,0.0f));
+	const glm::vec3 tip = transformPoint(swordTransform, sword.upperOriginAnchor());
+	if (skill.swordTrailSampleCount > 0) {
+		const SwordTrailSample& previous = skill.swordTrailSamples[skill.swordTrailSampleCount - 1];
+		if (glm::length(tip - previous.tip) < 0.012f
+			&& glm::length(base - previous.base) < 0.012f) return;
+	}
+	if (skill.swordTrailSampleCount == skill.swordTrailSamples.size()) {
+		for (size_t i = 1; i < skill.swordTrailSampleCount; ++i) {
+			skill.swordTrailSamples[i - 1] = skill.swordTrailSamples[i];
+		}
+		--skill.swordTrailSampleCount;
+	}
+	skill.swordTrailSamples[skill.swordTrailSampleCount++] = { base, tip, skill.elapsed };
+}
+
+// 현재 스킬 안에서 쌓인 검 궤적 리본을 단계별 색으로 그린다.
+static void drawSkillSwordTrail(App& app, const CharacterPose& pose, float aspect) {
+	if (!skillAnimationActive(app) || app.skillAnimation.swordTrailSampleCount < 2) return;
+	const SkillAnimationState& skill = app.skillAnimation;
+	constexpr double trailLifetime = 0.22;
+	const glm::mat4 viewProjection = sceneProjectionMatrix(aspect)
+		* sceneViewMatrix(pose.rootPosition, app.cameraYaw, app.cameraPitch);
+	const bool sealed = skill.swordStageAtStart == 0;
+	const float red = 1.0f;
+	const float green = sealed ? 1.0f : 0.38f;
+	const float blue = sealed ? 1.0f : 0.06f;
+	app.canvas.clipTo(MODEL_VIEW_RECT);
+	for (size_t i = 1; i < skill.swordTrailSampleCount; ++i) {
+		const SwordTrailSample& previous = skill.swordTrailSamples[i - 1];
+		const SwordTrailSample& current = skill.swordTrailSamples[i];
+		const double age = skill.elapsed - current.elapsed;
+		if (age < 0.0 || age > trailLifetime) continue;
+		glm::vec2 previousBase{}, previousTip{}, currentBase{}, currentTip{};
+		if (!projectToDesign(previous.base, viewProjection, previousBase)
+			|| !projectToDesign(previous.tip, viewProjection, previousTip)
+			|| !projectToDesign(current.base, viewProjection, currentBase)
+			|| !projectToDesign(current.tip, viewProjection, currentTip)) continue;
+		const float fade = 1.0f - std::clamp(static_cast<float>(age / trailLifetime), 0.0f, 1.0f);
+		const float alpha = (sealed ? 0.52f : 0.58f) * fade * fade;
+		app.canvas.filledQuad(previousBase, previousTip, currentTip, currentBase,
+			{ red, green, blue, alpha });
+	}
+	app.canvas.endClip();
+}
+
 // 벡터를 캐릭터 로컬 X축 주위로 회전한다.
 static glm::vec3 rotateAroundLocalX(const glm::vec3& vector, float angle) {
 	const float cosine = std::cos(angle);
@@ -254,9 +319,13 @@ void drawMainScreen(App& app, double now) {
 			const bool swordIsInFlight = laevateinnAnimation && app.skillAnimation.skillIndex == 2
 				&& app.skillAnimation.thrownSwordVisible;
 			if (sword.loaded() && !swordIsInFlight) {
-				sword.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition,
-					handHeldSkill ? handSwordTransform(sword, torsoTransform, pose)
-						: backSwordTransform(sword, torsoTransform));
+				const glm::mat4 swordTransform = handHeldSkill
+					? handSwordTransform(sword, torsoTransform, pose)
+					: backSwordTransform(sword, torsoTransform);
+				sword.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, swordTransform);
+				if (handHeldSkill && skillAnimationActive(app)) {
+					recordSkillSwordTrail(app, sword, swordTransform);
+				}
 			}
 		}
 		const bool legacyStageUpThrow = app.skillAnimation.skillIndex == 5
@@ -292,6 +361,7 @@ void drawMainScreen(App& app, double now) {
 		app.leftFoot.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, leftLowerLeg);
 		app.rightFoot.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, rightLowerLeg);
 		canvas.end3D();
+		drawSkillSwordTrail(app, pose, aspect);
 		if (skillAnimationActive(app) && app.skillAnimation.swordStageAtStart == 3
 			&& app.skillAnimation.skillIndex == 5 && app.skillAnimation.elapsed >= app.skillAnimation.lungeDuration + 2.0
 			&& app.skillAnimation.elapsed < app.skillAnimation.lungeDuration + 2.45) {

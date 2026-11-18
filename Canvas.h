@@ -58,6 +58,27 @@ public:
 		quad(x, y, w, h, color, 0, false);
 	}
 
+	// 화면 좌표의 임의 사각형을 단색 삼각형 두 개로 채운다.
+	void filledQuad(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c,
+		const glm::vec2& d, Tint color) {
+		const glm::vec2 points[6] = { a, b, c, a, c, d };
+		float vertices[24]{};
+		for (int i = 0; i < 6; ++i) {
+			vertices[i * 4] = offsetX_ + points[i].x * scale_;
+			vertices[i * 4 + 1] = offsetY_ + points[i].y * scale_;
+		}
+		glUniform4f(glGetUniformLocation(program_, "uTint"), color.r, color.g, color.b, color.a);
+		glUniform1i(glGetUniformLocation(program_, "uTextured"), 0);
+		glUniform1i(glGetUniformLocation(program_, "uMasked"), 0);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+		if (sizeof(vertices) > bufferCapacity_) {
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), nullptr, GL_DYNAMIC_DRAW);
+			bufferCapacity_ = sizeof(vertices);
+		}
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
 	// 두 점을 잇는 두께 있는 선을 사각형 삼각형으로 그린다.
 	void line(float x1, float y1, float x2, float y2, float width, Tint color) {
 		const float dx = x2 - x1;

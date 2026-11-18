@@ -50,6 +50,12 @@ struct CharacterRig {
 };
 
 // 현재 스킬 프레임, 이동·타격 상태, 던진 검의 비행 정보를 보관한다.
+struct SwordTrailSample {
+	glm::vec3 base{ 0.0f };
+	glm::vec3 tip{ 0.0f };
+	double elapsed = 0.0;
+};
+
 struct SkillAnimationState {
 	int skillIndex = -1;
 	int swordStageAtStart = 0;
@@ -57,6 +63,8 @@ struct SkillAnimationState {
 	double duration = 0.0;
 	unsigned voiceCueMask = 0;
 	unsigned soundEffectCueMask = 0;
+	std::array<SwordTrailSample, 32> swordTrailSamples{};
+	size_t swordTrailSampleCount = 0;
 	bool swordThrown = false;
 	bool thrownSwordVisible = false;
 	int thrownSwordStage = 0;
