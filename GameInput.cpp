@@ -175,7 +175,9 @@ static void renderSoundEffectSamples(VoicePlayback& playback, const App& app) {
 		const float distance = glm::length(sourceDirection);
 		const float pan = distance > 1e-5f
 			? std::clamp(glm::dot(sourceDirection / distance, cameraRight), -1.0f, 1.0f) : 0.0f;
-		const float attenuation = 1.0f / (1.0f + (distance / 12.0f) * (distance / 12.0f));
+		const float attenuation = playback.fileName == L"middleswordsq_1.wav"
+			? 1.0f
+			: 1.0f / (1.0f + (distance / 12.0f) * (distance / 12.0f));
 		left *= attenuation * (pan > 0.0f ? 1.0f - pan : 1.0f);
 		right *= attenuation * (pan < 0.0f ? 1.0f + pan : 1.0f);
 	}
