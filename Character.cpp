@@ -82,6 +82,10 @@ static bool projectToDesign(const glm::vec3& point, const glm::mat4& viewProject
 static void recordSkillSwordTrail(App& app, const ObjModel& sword, const glm::mat4& swordTransform) {
 	if (!skillAnimationActive(app)) return;
 	SkillAnimationState& skill = app.skillAnimation;
+	if (suppressSkillSwordTrail(app)) {
+		skill.swordTrailSampleCount = 0;
+		return;
+	}
 	const bool unsealedColor = skill.swordStageAtStart != 0 || skill.swordThrown;
 	constexpr double trailLifetime = 0.22;
 	while (skill.swordTrailSampleCount > 0
@@ -341,7 +345,9 @@ void drawMainScreen(App& app, double now) {
 			if (thrownSword.loaded()) {
 				const glm::mat4 thrownTransform = thrownSkillSwordTransform(app);
 				thrownSword.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, thrownTransform);
-				recordSkillSwordTrail(app, thrownSword, thrownTransform);
+				if (laevateinnSkill3Throw) {
+					recordSkillSwordTrail(app, thrownSword, thrownTransform);
+				}
 			}
 		}
 

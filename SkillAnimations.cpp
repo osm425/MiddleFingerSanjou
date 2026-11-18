@@ -569,6 +569,16 @@ bool skillAnimationActive(const App& app) {
 	return app.skillAnimation.skillIndex >= 0;
 }
 
+// 봉인 해제 1·2단계 6번의 좌우로 검을 흔드는 구간은 궤적 샘플을 생략한다.
+bool suppressSkillSwordTrail(const App& app) {
+	const SkillAnimationState& animation = app.skillAnimation;
+	return skillAnimationActive(app)
+		&& animation.skillIndex == 5
+		&& (animation.swordStageAtStart == 1 || animation.swordStageAtStart == 2)
+		&& animation.elapsed >= unsealedSwordPullbackEnd()
+		&& animation.elapsed < unsealedSwordReleasePoseStart();
+}
+
 // 활성 스킬의 진행 시각을 현재 캐릭터 관절 자세로 변환한다.
 CharacterPose animatedSkillPose(const App& app) {
 	if (!skillAnimationActive(app)) return app.characterPose;

@@ -221,6 +221,7 @@ double laevateinnSkill3ThrowTime();
 double laevateinnSkill3KickStartTime();
 double laevateinnSkill3RetrievalTime();
 bool skillAnimationActive(const App& app);
+bool suppressSkillSwordTrail(const App& app);
 void framebufferCallback(GLFWwindow* window, int width, int height);
 void drawText(Canvas& canvas, Assets& assets, const std::wstring& value, int size, Tint color, float x, float y, bool bold = false);
 void drawCentered(Canvas& canvas, Assets& assets, const std::wstring& value, int size, Tint color, float centerX, float y, bool bold = false);
