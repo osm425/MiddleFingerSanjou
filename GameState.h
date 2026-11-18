@@ -54,6 +54,7 @@ struct SwordTrailSample {
 	glm::vec3 base{ 0.0f };
 	glm::vec3 tip{ 0.0f };
 	double elapsed = 0.0;
+	bool unsealedColor = false;
 };
 
 struct SkillAnimationState {
