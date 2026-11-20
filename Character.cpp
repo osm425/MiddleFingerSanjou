@@ -76,7 +76,8 @@ static glm::vec3 transformPoint(const glm::mat4& transform, const glm::vec3& poi
 }
 
 // 3D 좌표를 1280x720 디자인 좌표계로 투영한다.
-static bool projectToDesign(const glm::vec3& point, const glm::mat4& viewProjection, glm::vec2& output);
+static bool projectToDesign(const glm::vec3& point, const glm::mat4& viewProjection,
+	glm::vec2& output, float* depth = nullptr);
 
 // 스킬 중 실제 검 움직임이 발생한 프레임의 손잡이·검끝 좌표를 저장한다.
 static void recordSkillSwordTrail(App& app, const ObjModel& sword, const glm::mat4& swordTransform) {
@@ -125,6 +126,9 @@ static void drawSkillSwordTrail(App& app, const CharacterPose& pose, float aspec
 	const glm::mat4 viewProjection = sceneProjectionMatrix(aspect)
 		* sceneViewMatrix(pose.rootPosition, app.cameraYaw, app.cameraPitch);
 	app.canvas.clipTo(MODEL_VIEW_RECT);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glDepthMask(GL_FALSE);
 	for (size_t i = 1; i < skill.swordTrailSampleCount; ++i) {
 		const SwordTrailSample& previous = skill.swordTrailSamples[i - 1];
 		const SwordTrailSample& current = skill.swordTrailSamples[i];
@@ -134,15 +138,20 @@ static void drawSkillSwordTrail(App& app, const CharacterPose& pose, float aspec
 		const float green = current.unsealedColor ? 0.38f : 1.0f;
 		const float blue = current.unsealedColor ? 0.06f : 1.0f;
 		glm::vec2 previousBase{}, previousTip{}, currentBase{}, currentTip{};
-		if (!projectToDesign(previous.base, viewProjection, previousBase)
-			|| !projectToDesign(previous.tip, viewProjection, previousTip)
-			|| !projectToDesign(current.base, viewProjection, currentBase)
-			|| !projectToDesign(current.tip, viewProjection, currentTip)) continue;
+		float previousBaseDepth = 0.0f, previousTipDepth = 0.0f;
+		float currentBaseDepth = 0.0f, currentTipDepth = 0.0f;
+		if (!projectToDesign(previous.base, viewProjection, previousBase, &previousBaseDepth)
+			|| !projectToDesign(previous.tip, viewProjection, previousTip, &previousTipDepth)
+			|| !projectToDesign(current.base, viewProjection, currentBase, &currentBaseDepth)
+			|| !projectToDesign(current.tip, viewProjection, currentTip, &currentTipDepth)) continue;
 		const float fade = 1.0f - std::clamp(static_cast<float>(age / trailLifetime), 0.0f, 1.0f);
 		const float alpha = (current.unsealedColor ? 0.58f : 0.52f) * fade * fade;
-		app.canvas.filledQuad(previousBase, previousTip, currentTip, currentBase,
+		const float depths[4] = { previousBaseDepth, previousTipDepth, currentTipDepth, currentBaseDepth };
+		app.canvas.filledQuadDepth(previousBase, previousTip, currentTip, currentBase, depths,
 			{ red, green, blue, alpha });
 	}
+	glDepthMask(GL_TRUE);
+	glDisable(GL_DEPTH_TEST);
 	app.canvas.endClip();
 }
 
@@ -154,13 +163,15 @@ static glm::vec3 rotateAroundLocalX(const glm::vec3& vector, float angle) {
 }
 
 // 3D 점을 화면 좌표로 투영하고 카메라 앞에 있는지 확인한다.
-static bool projectToDesign(const glm::vec3& point, const glm::mat4& viewProjection, glm::vec2& output) {
+static bool projectToDesign(const glm::vec3& point, const glm::mat4& viewProjection,
+	glm::vec2& output, float* depth) {
 	const glm::vec4 clip = viewProjection * glm::vec4(point, 1.0f);
 	if (clip.w <= 0.001f) return false;
 	const glm::vec3 ndc = glm::vec3(clip) / clip.w;
 	if (ndc.z < -1.0f || ndc.z > 1.0f) return false;
 	output.x = MODEL_VIEW_RECT.x + (ndc.x + 1.0f) * 0.5f * MODEL_VIEW_RECT.w;
 	output.y = MODEL_VIEW_RECT.y + (1.0f - ndc.y) * 0.5f * MODEL_VIEW_RECT.h;
+	if (depth) *depth = ndc.z;
 	return true;
 }
 

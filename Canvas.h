@@ -79,6 +79,32 @@ public:
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
+	// 화면 좌표 사각형에 투영 깊이를 넣어 장면의 깊이 버퍼로 가려지게 그린다.
+	void filledQuadDepth(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c,
+		const glm::vec2& d, const float depths[4], Tint color) {
+		const glm::vec2 points[6] = { a, b, c, a, c, d };
+		const float pointDepths[6] = { depths[0], depths[1], depths[2], depths[0], depths[2], depths[3] };
+		float vertices[24]{};
+		for (int i = 0; i < 6; ++i) {
+			vertices[i * 4] = offsetX_ + points[i].x * scale_;
+			vertices[i * 4 + 1] = offsetY_ + points[i].y * scale_;
+			vertices[i * 4 + 2] = pointDepths[i];
+		}
+		glUniform4f(glGetUniformLocation(program_, "uTint"), color.r, color.g, color.b, color.a);
+		glUniform1i(glGetUniformLocation(program_, "uTextured"), 0);
+		glUniform1i(glGetUniformLocation(program_, "uMasked"), 0);
+		const GLint vertexDepthLocation = glGetUniformLocation(program_, "uVertexDepth");
+		glUniform1i(vertexDepthLocation, 1);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+		if (sizeof(vertices) > bufferCapacity_) {
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), nullptr, GL_DYNAMIC_DRAW);
+			bufferCapacity_ = sizeof(vertices);
+		}
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glUniform1i(vertexDepthLocation, 0);
+	}
+
 	// 두 점을 잇는 두께 있는 선을 사각형 삼각형으로 그린다.
 	void line(float x1, float y1, float x2, float y2, float width, Tint color) {
 		const float dx = x2 - x1;

@@ -251,7 +251,7 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 			{ combo[4], 0.5, L"9SV-BAT3-BR6-2-02.wav", 0x40u, true, false, { L"middlefather_5_1-2.wav" } }, // throw at this frame's start
 			{ rightLegStompAndLeftKneel(), 0.5, nullptr, 0, false, false, { L"human_drag.wav" } },
 			{ action(1.0f, 1.0f, 1.2f, 0.2f, 1.48f, -1.5f, 0.0f, 1.0f, 0.0f, 0.0f, -0.05f, 0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 1.2, nullptr, 0, false, false, { L"human_jump.wav" } },
-			{ action(1.0f, 1.0f, 1.2f, 0.2f, 1.95f, -1.5f, -0.75f, 1.0f, 0.0f, 0.12f, 0.18f,0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 1.8,
+			{ action(1.0f, 1.0f, 1.2f, 0.2f, 1.95f, -1.5f, -0.75f, 1.0f, 0.1f, 0.12f, 0.18f,0.6f,0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 0.0f),1.2f), 1.8,
 				L"bulls_eye_1.wav", 0x2u, false, false, { L"middlefather_ch_1.wav" } },
 			{ action(2.72f, 0.85f, 0.0f, 0.0f, -0.3f, 0.0f, -1.2f, 0.0f, 0.0f, -1.0f,0.1f,-0.4f,0.0f, 0.0f, glm::vec3(-1.0f, 0.0f, -1.0f),0.3f), 1.5, L"9SV-BAT3-BR4-3-02.wav", 0x80u, false, true,
 				{ L"middlefather_5_2-2.wav" } }
