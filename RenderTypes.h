@@ -99,11 +99,14 @@ layout (location = 0) in vec2 aPosition;
 layout (location = 1) in vec2 aUv;
 uniform vec2 uViewport;
 uniform int uVertexDepth;
+uniform int uUniformVertexDepth;
+uniform float uQuadDepth;
 out vec2 vUv;
 void main() {
 	vec2 clip = vec2((aPosition.x / uViewport.x) * 2.0 - 1.0,
 		1.0 - (aPosition.y / uViewport.y) * 2.0);
-	gl_Position = vec4(clip, uVertexDepth != 0 ? aUv.x : 0.0, 1.0);
+	float depth = uVertexDepth != 0 ? aUv.x : (uUniformVertexDepth != 0 ? uQuadDepth : 0.0);
+	gl_Position = vec4(clip, depth, 1.0);
 	vUv = aUv;
 }
 )GLSL";

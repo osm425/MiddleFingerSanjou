@@ -43,6 +43,8 @@ public:
 		glUniform2f(glGetUniformLocation(program_, "uViewport"), static_cast<float>(frameWidth_), static_cast<float>(frameHeight_));
 		glUniform1i(glGetUniformLocation(program_, "uTexture"), 0);
 		glUniform1i(glGetUniformLocation(program_, "uMaskTexture"), 1);
+		glUniform1i(glGetUniformLocation(program_, "uVertexDepth"), 0);
+		glUniform1i(glGetUniformLocation(program_, "uUniformVertexDepth"), 0);
 		glBindVertexArray(vao_);
 	}
 
@@ -190,6 +192,35 @@ public:
 	// 텍스처를 지정한 UI 사각형에 배치한다.
 	void image(const Texture& texture, float x, float y, float w, float h, Tint tint = { 1, 1, 1, 1 }) {
 		if (texture.id) quad(x, y, w, h, tint, texture.id, true);
+	}
+
+	// 장면 깊이로 가려지는 카메라 정면 텍스처 빌보드를 그린다.
+	void imageQuadDepth(const Texture& texture, const glm::vec2 corners[4], float depth, Tint tint) {
+		if (!texture.id) return;
+		const float vertices[24] = {
+			offsetX_ + corners[0].x * scale_, offsetY_ + corners[0].y * scale_, 0, 0,
+			offsetX_ + corners[1].x * scale_, offsetY_ + corners[1].y * scale_, 1, 0,
+			offsetX_ + corners[2].x * scale_, offsetY_ + corners[2].y * scale_, 1, 1,
+			offsetX_ + corners[0].x * scale_, offsetY_ + corners[0].y * scale_, 0, 0,
+			offsetX_ + corners[2].x * scale_, offsetY_ + corners[2].y * scale_, 1, 1,
+			offsetX_ + corners[3].x * scale_, offsetY_ + corners[3].y * scale_, 0, 1
+		};
+		glUniform4f(glGetUniformLocation(program_, "uTint"), tint.r, tint.g, tint.b, tint.a);
+		glUniform1i(glGetUniformLocation(program_, "uTextured"), 1);
+		glUniform1i(glGetUniformLocation(program_, "uMasked"), 0);
+		glUniform1i(glGetUniformLocation(program_, "uVertexDepth"), 0);
+		glUniform1i(glGetUniformLocation(program_, "uUniformVertexDepth"), 1);
+		glUniform1f(glGetUniformLocation(program_, "uQuadDepth"), depth);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture.id);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+		if (sizeof(vertices) > bufferCapacity_) {
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), nullptr, GL_DYNAMIC_DRAW);
+			bufferCapacity_ = sizeof(vertices);
+		}
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glUniform1i(glGetUniformLocation(program_, "uUniformVertexDepth"), 0);
 	}
 
 	// 텍스처 비율을 보존하면서 화면 viewport를 빈틈없이 덮는다.

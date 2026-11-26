@@ -79,6 +79,115 @@ static glm::vec3 transformPoint(const glm::mat4& transform, const glm::vec3& poi
 static bool projectToDesign(const glm::vec3& point, const glm::mat4& viewProjection,
 	glm::vec2& output, float* depth = nullptr);
 
+// 매 프레임 파티클 수명·이동을 갱신하고 프레임 간격에 맞춰 방출량을 누적한다.
+static void updateSwordSmokeParticles(App& app, double now) {
+	app.swordSmokeEmittedThisFrame = false;
+	const double delta = app.swordSmokeLastUpdateAt < 0.0
+		? 0.0 : std::clamp(now - app.swordSmokeLastUpdateAt, 0.0, 0.05);
+	app.swordSmokeLastUpdateAt = now;
+	for (SwordSmokeParticle& particle : app.swordSmokeParticles) {
+		particle.age += static_cast<float>(delta);
+		particle.position += particle.velocity * static_cast<float>(delta);
+	}
+	app.swordSmokeParticles.erase(std::remove_if(app.swordSmokeParticles.begin(), app.swordSmokeParticles.end(),
+		[](const SwordSmokeParticle& particle) { return particle.age >= particle.lifetime; }),
+		app.swordSmokeParticles.end());
+	if (app.swordStage >= 1 && app.swordStage <= 3) {
+		app.swordSmokeEmissionAccumulator = std::min(
+			app.swordSmokeEmissionAccumulator + delta, 2.0 / 18.0);
+	}
+	else {
+		app.swordSmokeEmissionAccumulator = 0.0;
+	}
+}
+
+// 검의 중심을 지나는 로컬 Y축 위 임의 지점에서 단계별 비율로 파티클을 만든다.
+static void emitSwordSmokeParticle(App& app, const ObjModel& sword,
+	const glm::mat4& swordTransform, int swordStage) {
+	constexpr double emissionInterval = 1.0 / 18.0;
+	if (swordStage < 1 || swordStage > 3 || app.swordSmokeEmittedThisFrame
+		|| app.swordSmokeEmissionAccumulator < emissionInterval) return;
+	uint64_t& stageSpawnCount = app.swordSmokeSpawnCounts[static_cast<size_t>(swordStage)];
+	const uint64_t cycle = stageSpawnCount % 3;
+	const int textureIndex = swordStage == 1 ? (cycle < 2 ? 0 : 1)
+		: swordStage == 2 ? (cycle == 0 ? 0 : 1)
+		: (cycle == 0 ? 1 : 2);
+	if (!app.swordSmokeTextures[textureIndex].id) return;
+
+	static std::mt19937 randomEngine{ std::random_device{}() };
+	const auto randomRange = [](float minimum, float maximum) {
+		static std::uniform_real_distribution<float> unit(0.0f, 1.0f);
+		return minimum + (maximum - minimum) * unit(randomEngine);
+	};
+	const glm::vec3 extent = sword.localExtent();
+	if (extent.y <= 1e-5f) return;
+	const float bladeStartY = sword.swordGripAnchor().y + extent.y * 0.04f;
+	const float bladeEndY = sword.upperOriginAnchor().y;
+	if (bladeEndY <= bladeStartY) return;
+	const float localY = randomRange(bladeStartY, bladeEndY);
+	const glm::vec3 localXDirection = glm::normalize(glm::vec3(swordTransform * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)));
+	const glm::vec3 localZDirection = glm::normalize(glm::vec3(swordTransform * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)));
+	SwordSmokeParticle particle;
+	particle.position = transformPoint(swordTransform, glm::vec3(0.0f, localY, 0.0f));
+	particle.velocity = glm::vec3(0.0f, randomRange(0.1f, 0.24f), 0.0f)
+		+ localXDirection * randomRange(-0.12f, 0.12f)
+		+ localZDirection * randomRange(-0.12f, 0.12f);
+	particle.startSize = randomRange(0.24f, 0.36f);
+	particle.endSize = randomRange(0.72f, 1.02f);
+	particle.textureIndex = textureIndex;
+	if (app.swordSmokeParticles.size() >= 72) app.swordSmokeParticles.erase(app.swordSmokeParticles.begin());
+	app.swordSmokeParticles.push_back(particle);
+	++stageSpawnCount;
+	app.swordSmokeEmissionAccumulator -= emissionInterval;
+	app.swordSmokeEmittedThisFrame = true;
+}
+
+// 파티클을 카메라 정면 빌보드로 그리며 장면 깊이로 캐릭터·적 뒤에 가려지게 한다.
+static void drawSwordSmokeParticles(App& app, const CharacterPose& pose, float aspect) {
+	if (app.swordSmokeParticles.empty()) return;
+	const glm::vec3 cameraPosition = sceneCameraPosition(pose.rootPosition, app.cameraYaw, app.cameraPitch);
+	const glm::vec3 forward = glm::normalize(pose.rootPosition - cameraPosition);
+	glm::vec3 right = glm::cross(forward, glm::vec3(0.0f, 1.0f, 0.0f));
+	if (glm::length(right) < 1e-5f) right = glm::vec3(1.0f, 0.0f, 0.0f);
+	right = glm::normalize(right);
+	const glm::vec3 up = glm::normalize(glm::cross(right, forward));
+	const glm::mat4 viewProjection = sceneProjectionMatrix(aspect)
+		* sceneViewMatrix(pose.rootPosition, app.cameraYaw, app.cameraPitch);
+	app.canvas.clipTo(MODEL_VIEW_RECT);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glDepthMask(GL_FALSE);
+	for (const SwordSmokeParticle& particle : app.swordSmokeParticles) {
+		if (particle.textureIndex < 0 || particle.textureIndex >= static_cast<int>(app.swordSmokeTextures.size())) continue;
+		const float progress = std::clamp(particle.age / particle.lifetime, 0.0f, 1.0f);
+		const float size = particle.startSize + (particle.endSize - particle.startSize) * progress;
+		const float alpha = 0.82f * (1.0f - progress) * (1.0f - progress);
+		const float halfSize = size * 0.5f;
+		const glm::vec3 cornersWorld[4] = {
+			particle.position - right * halfSize + up * halfSize,
+			particle.position + right * halfSize + up * halfSize,
+			particle.position + right * halfSize - up * halfSize,
+			particle.position - right * halfSize - up * halfSize
+		};
+		glm::vec2 corners[4]{};
+		float depth = 0.0f;
+		if (!projectToDesign(particle.position, viewProjection, corners[0], &depth)) continue;
+		bool visible = true;
+		for (int cornerIndex = 0; cornerIndex < 4; ++cornerIndex) {
+			if (!projectToDesign(cornersWorld[cornerIndex], viewProjection, corners[cornerIndex])) {
+				visible = false;
+				break;
+			}
+		}
+		if (!visible) continue;
+		app.canvas.imageQuadDepth(app.swordSmokeTextures[particle.textureIndex], corners, depth,
+			{ 1.0f, 1.0f, 1.0f, alpha });
+	}
+	glDepthMask(GL_TRUE);
+	glDisable(GL_DEPTH_TEST);
+	app.canvas.endClip();
+}
+
 // 스킬 중 실제 검 움직임이 발생한 프레임의 손잡이·검끝 좌표를 저장한다.
 static void recordSkillSwordTrail(App& app, const ObjModel& sword, const glm::mat4& swordTransform) {
 	if (!skillAnimationActive(app)) return;
@@ -246,6 +355,7 @@ static void drawFieldBookshelfWalls(App& app, float aspect, const glm::vec3& cam
 // 바닥, 그림자, 적, 캐릭터와 무기 및 스킬 UI를 메인 화면에 그린다.
 void drawMainScreen(App& app, double now) {
 	Canvas& canvas = app.canvas;
+	updateSwordSmokeParticles(app, now);
 	canvas.rect(0, 0, 1280, 720, rgba(9, 10, 15));
 	if (app.model.loaded()) {
 		canvas.begin3D(MODEL_VIEW_RECT);
@@ -340,6 +450,7 @@ void drawMainScreen(App& app, double now) {
 					? handSwordTransform(sword, torsoTransform, pose)
 					: backSwordTransform(sword, torsoTransform);
 				sword.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, swordTransform);
+				emitSwordSmokeParticle(app, sword, swordTransform, app.swordStage);
 				if (handHeldSkill && skillAnimationActive(app)) {
 					recordSkillSwordTrail(app, sword, swordTransform);
 				}
@@ -356,6 +467,7 @@ void drawMainScreen(App& app, double now) {
 			if (thrownSword.loaded()) {
 				const glm::mat4 thrownTransform = thrownSkillSwordTransform(app);
 				thrownSword.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, thrownTransform);
+				emitSwordSmokeParticle(app, thrownSword, thrownTransform, app.skillAnimation.thrownSwordStage);
 				if (laevateinnSkill3Throw) {
 					recordSkillSwordTrail(app, thrownSword, thrownTransform);
 				}
@@ -382,6 +494,7 @@ void drawMainScreen(App& app, double now) {
 		app.rightFoot.draw(aspect, app.cameraYaw, app.cameraPitch, pose.rootPosition, rightLowerLeg);
 		canvas.end3D();
 		drawSkillSwordTrail(app, pose, aspect);
+		drawSwordSmokeParticles(app, pose, aspect);
 		if (skillAnimationActive(app) && app.skillAnimation.swordStageAtStart == 3
 			&& app.skillAnimation.skillIndex == 5 && app.skillAnimation.elapsed >= app.skillAnimation.lungeDuration + 2.0
 			&& app.skillAnimation.elapsed < app.skillAnimation.lungeDuration + 2.45) {

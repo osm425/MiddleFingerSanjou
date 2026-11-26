@@ -62,6 +62,9 @@ int WINAPI wWinMain(HINSTANCE , HINSTANCE, PWSTR, int) {
 	app.assetRoot = assetRoot;
 	app.canvas.initialize();
 	app.startBackground = assets.loadImage(L"start_screen.png");
+	app.swordSmokeTextures[0] = assets.loadImage(L"dark_gray.png");
+	app.swordSmokeTextures[1] = assets.loadImage(L"fire_gray.png");
+	app.swordSmokeTextures[2] = assets.loadImage(L"31114305a3579c81.png");
 	app.ground.initialize();
 	const Texture modelTexture = assets.loadImage(L"models/bodytexture.png");
 	app.model.load(assetRoot / L"models" / L"Matthias.obj", modelTexture);

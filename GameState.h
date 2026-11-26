@@ -57,6 +57,17 @@ struct SwordTrailSample {
 	bool unsealedColor = false;
 };
 
+// 검에서 방출된 연기·불꽃 파티클의 월드 좌표와 수명을 보관한다.
+struct SwordSmokeParticle {
+	glm::vec3 position{ 0.0f };
+	glm::vec3 velocity{ 0.0f };
+	float age = 0.0f;
+	float lifetime = 0.9f;
+	float startSize = 0.18f;
+	float endSize = 0.55f;
+	int textureIndex = 0;
+};
+
 struct SkillAnimationState {
 	int skillIndex = -1;
 	int swordStageAtStart = 0;
@@ -113,6 +124,12 @@ struct App {
 	std::array<std::array<Texture, 6>, 4> skills{};
 	std::array<Texture, 4> skillFrames{};
 	std::array<Texture, 4> skillBackgrounds{};
+	std::array<Texture, 3> swordSmokeTextures{};
+	std::vector<SwordSmokeParticle> swordSmokeParticles;
+	std::array<uint64_t, 4> swordSmokeSpawnCounts{};
+	double swordSmokeLastUpdateAt = -1.0;
+	double swordSmokeEmissionAccumulator = 0.0;
+	bool swordSmokeEmittedThisFrame = false;
 	std::array<double, 6> cooldownEndsAt{};
 	std::array<double, 6> cooldownDurations{};
 	fs::path assetRoot;
