@@ -125,10 +125,14 @@ static void emitSwordSmokeParticle(App& app, const ObjModel& sword,
 	const float bladeEndY = sword.upperOriginAnchor().y;
 	if (bladeEndY <= bladeStartY) return;
 	const float localY = randomRange(bladeStartY, bladeEndY);
+	const float localXRange = std::max(extent.x * 0.45f, 0.06f);
+	const float localZRange = std::max(extent.z * 0.45f, 0.06f);
+	const float localX = randomRange(-localXRange, localXRange);
+	const float localZ = randomRange(-localZRange, localZRange);
 	const glm::vec3 localXDirection = glm::normalize(glm::vec3(swordTransform * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)));
 	const glm::vec3 localZDirection = glm::normalize(glm::vec3(swordTransform * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f)));
 	SwordSmokeParticle particle;
-	particle.position = transformPoint(swordTransform, glm::vec3(0.0f, localY, 0.0f));
+	particle.position = transformPoint(swordTransform, glm::vec3(localX, localY, localZ));
 	particle.velocity = glm::vec3(0.0f, randomRange(0.1f, 0.24f), 0.0f)
 		+ localXDirection * randomRange(-0.12f, 0.12f)
 		+ localZDirection * randomRange(-0.12f, 0.12f);

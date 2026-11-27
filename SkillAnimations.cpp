@@ -246,7 +246,7 @@ const std::array<std::vector<SkillFrame>, 6>& laevateinnSkillFrames() {
 			{ combo[4], 0.6, L"9SV-BAT3-BR8-2.wav", 0x8u, false, false, { L"middlefather_f_1.wav" } },
 			{ combo[6], 0.5, L"9SV-BAT3-BR8-3-01.wav", 0x10u, false, false, { L"middlefather_f_1-2.wav" } },
 			{ laevateinnsuperslashPose(), 0.5, nullptr, 0, false, false, { L"middlefather_ch_1.wav" } },
-			{ action(0.5f, -0.5f, 0.0f, -0.6f, 0.72f, -0.1f, -0.72f, -0.2f, -0.30f, -1.4f, -0.05f, 0.1f, 0.0f, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f)),0,nullptr,0,false,false },
+			{ combo[6],0,nullptr,0,false,false },
 			{ combo[4], 0.8, L"9SV-BAT3-BR1-2-06.wav", 0x20u, false, false, { L"middlefather_6_4.wav", L"middlefather_f_1.wav" } },
 			{ laevateinnsuperslashPose(), 0.5, nullptr, 0, false, false, { L"middlefather_f_1-1.wav" } },
 			{ combo[4], 0.5, L"9SV-BAT3-BR6-2-02.wav", 0x40u, true, false, { L"middlefather_5_1-2.wav" } }, // throw at this frame's start
